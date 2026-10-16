@@ -44,7 +44,7 @@ The Playwright session has an ephemeral browser profile, blocks downloads and lo
 
 **ChatGPT / Codex:** Install the official Codex CLI, run `codex login`, and choose **ChatGPT / Codex**. It uses Codex's official ChatGPT login and plan entitlements, not an unofficial subscription API. Codex runs read-only here. A ChatGPT Plus subscription is not an OpenAI API key.
 
-**DeepInfra:** Set `DEEPINFRA_API_KEY` before launch, then choose **DeepInfra**. The default model is `deepseek-ai/DeepSeek-V4-Flash-0731`, or enter another available model ID in the window.
+**DeepInfra:** Set `DEEPINFRA_API_KEY` before launch, then choose **DeepInfra**. The default model is `zai-org/GLM-5.3-Flash`, or enter another available model ID in the window.
 
 Credentials are never stored in the Ainex repository. Provider credentials and live API behavior need user-side validation.
 
