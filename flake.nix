@@ -3,7 +3,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     ain = {
-      url = "github:honerop/ain/206114c52a038d259735dd124ee4e0727f0677dd";
+      url = "github:honerop/ain/879263046cc0fae3b20af49a6ad13d9eb32ca8fa";
       flake = false;
     };
   };
@@ -45,6 +45,12 @@
               "$CARGO_TARGET_DIR/release/ainc" build tests/browser.ain -o browser-test
               "$CARGO_TARGET_DIR/release/ainc" build tests/gui_task.ain -o gui-task-test
               "$CARGO_TARGET_DIR/release/ainc" build tests/workspace.ain -o workspace-test
+              "$CARGO_TARGET_DIR/release/ainc" build tests/agent_store.ain -o agent-store-test
+              ./agent-store-test > /tmp/ainex-agent-store.log
+              grep -x 'true' /tmp/ainex-agent-store.log
+              grep -x 'Teacher' /tmp/ainex-agent-store.log
+              grep -x 'Haskell tutor' /tmp/ainex-agent-store.log
+              grep -x 'opencode' /tmp/ainex-agent-store.log
               ./workspace-test > /tmp/ainex-workspace.log
               grep -x "true" /tmp/ainex-workspace.log
               grep -F "Hello Ainex" /tmp/ainex-workspace.log
