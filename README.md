@@ -1,8 +1,10 @@
 # Ainex
 
-A general-purpose AI client implemented in [Ain](https://github.com/honerop/ain), with a **native GTK4 desktop interface** for NixOS and other Linux systems. The GUI is not a browser app, webview, or Electron shell.
+Ainex is a **general-purpose native GTK4 desktop assistant written entirely in [Ain](https://github.com/honerop/ain)**. Every part of the application behavior lives in [`main.ain`](main.ain): native GUI layout, navigation, chat/provider choices, and browser commands.
 
-The Ain entry point is [`main.ain`](main.ain). Ain's experimental `desktop` builtin implements the native GTK4 window and provider adapters in its Rust code-generation runtime. This is an initial desktop chat client, not yet a fully autonomous tool-using agent.
+**No Rust, Python, JavaScript or other application source code exists in this repository.** Ain's compiler and reusable standard runtime are responsible for translating Ain to native code and providing GTK4 widgets, HTTP/AI support and isolated Playwright Chromium automation. Nix is only used for packaging and dependencies.
+
+Ain is a general-purpose programming language designed **exclusively for AI-generated code**, with a deliberately extensive built-in library.
 
 ## Run on NixOS
 
@@ -10,61 +12,62 @@ The Ain entry point is [`main.ain`](main.ain). Ain's experimental `desktop` buil
 nix run github:honerop/ainex
 ```
 
-Or use a development checkout:
+For development:
 
 ```sh
 git clone https://github.com/honerop/ainex.git
 cd ainex
 nix develop
-ainc check main.ain
 ainc run main.ain
 ```
 
-The flake pins an Ain revision containing the native GTK4 desktop builtin, installs GTK4 build dependencies, and includes curl, jq, and Codex when available in nixpkgs.
+## Native GUI in Ain
 
-## Providers
+The graphical interface is built using Ain's general `gui title layout` operation, which constructs a real GTK4 window and returns keyboard/button events to the Ain program.
 
-### ChatGPT via the official Codex CLI
-
-```sh
-codex login
-nix run .
+```text
+layout = "header\\tAinex\\nentry\\tmessage\\tMessage\\nbutton\\tsend\\tSend\\nvim\\t1\\n"
+print gui "Ainex" layout
 ```
 
-Choose **ChatGPT / Codex**. This uses the authenticated Codex CLI (subject to subscription entitlements and limits), not an unofficial ChatGPT API. A ChatGPT Plus subscription is not an OpenAI API token. Ainex does not read Codex's credential files. Codex operates in read-only mode in this version.
+An Ain program can define and render windows, read typed messages, handle events, switch providers, and update the interface without introducing a second programming language.
 
-If the Nix environment lacks a `codex` binary, install the official Codex CLI and ensure it is on your PATH.
+## Browser commands
 
-### DeepInfra
+Inside the native window, press **i** to type:
 
-```sh
-export DEEPINFRA_API_KEY="YOUR_DEEPINFRA_TOKEN"
-nix run .
-```
+| Command | Behavior |
+| --- | --- |
+| `:browse https://example.com` | Open a public HTTP(S) page in isolated Chromium |
+| `:page` | Read the current page |
+| `:links` | List its links |
+| `:click CSS_SELECTOR` | Click the first matching element |
+| `:fill CSS_SELECTOR\|value` | Fill a field |
+| `:back` | Go back |
+| `:screenshot name.png` | Save a screenshot under your XDG cache directory |
+| `:ask QUESTION` | Ask the selected model about the current page |
 
-Choose **DeepInfra** and optionally enter the exact model identifier. The default is `deepseek-ai/DeepSeek-V4-Flash-0731`. DeepInfra's OpenAI-compatible chat-completions endpoint is used. Never commit credentials.
+Browser operations are implemented by Ain's general `browser operation argument` builtin. Each action must be requested by the user. Ainex does **not** allow the model to autonomously browse, log in or submit forms.
+
+## Model providers
+
+**ChatGPT Plus:** Install the official Codex CLI and authenticate with `codex login`. Select **ChatGPT** in the GTK4 window (or enter `:chatgpt`). This uses Codex's supported ChatGPT authentication rather than unofficial API access. ChatGPT Plus does not include an OpenAI API key.
+
+**DeepInfra:** Export `DEEPINFRA_API_KEY`, then select **DeepInfra** or type `:deepinfra`. By default Ain uses `zai-org/GLM-5.3-Flash`; use `:model IDENTIFIER` to change it. Tokens stay outside the repository.
+
+The Ain built-in operation is `chat provider model prompt`, reusable in other Ain programs.
 
 ## Vim-style navigation
 
-| Key | Action |
-| --- | --- |
-| `i` | Focus composer / insert mode |
-| `Esc` | Normal mode |
-| `j` / `k` | Scroll conversation |
-| `gg` / `G` | Jump to top / bottom |
-| `:` | Start a command |
-| `Enter` | Send a message or run a command |
-| `:help` | Show shortcuts |
-| `:clear` | Clear on-screen history |
-| `:deepinfra` / `:chatgpt` | Switch provider |
-| `:model MODEL` | Set model |
+`i` inserts; `Esc` returns to normal mode; `j`/`k` scroll; `gg`/`G` move to top/bottom; `:` starts a command; `Enter` sends. Type `:help` for the full command list.
 
-## Limitations
+## Current limitations
 
-- Linux-only native GTK4 GUI, with NixOS packaging.
-- Single-line composer and plain-text replies.
-- Conversations are kept in memory in the UI; requests do **not** retain model history yet.
-- Ain's LLVM backend does not currently implement the desktop builtin; use the Rust backend.
-- No arbitrary command execution, browser control, or persistent agent tasks yet.
+- Only Linux/NixOS GTK4 is supported.
+- The UI is synchronous and currently single-line; API requests temporarily block its event loop.
+- Conversation history exists only while the process runs and is not persisted.
+- Browser automation is explicit, not model-directed autonomous tool use.
+- Provider logins and live model responses have not been tested with personal credentials.
+- GUI, browser and chat builtins are currently supported through Ain's Rust code-generation backend, not its LLVM or self-hosted C backend. **The Ainex application itself does not contain Rust.**
 
-License: MIT.
+MIT license.

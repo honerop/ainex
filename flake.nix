@@ -1,9 +1,9 @@
 {
-  description = "Ainex, a native GTK4 AI desktop application written in Ain";
+  description = "Ainex: native GTK4 AI assistant with isolated Chromium browser tools";
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     ain = {
-      url = "github:honerop/ain/39e4dd8b0dc503018eddeea8cd3bbaad8d3f88ed";
+      url = "github:honerop/ain/ddf214b434251eec91517e16f17f6daa50c696cf";
       flake = false;
     };
   };
@@ -16,13 +16,15 @@
       packages = forAllSystems (pkgs:
         let
           lib = pkgs.lib;
-          tools = with pkgs; [ curl jq ] ++ lib.optionals (pkgs ? codex) [ pkgs.codex ];
+          python = pkgs.python3.withPackages (p: [ p.playwright ]);
+          dependencies = [ pkgs.curl pkgs.jq python pkgs.chromium ]
+            ++ lib.optionals (pkgs ? codex) [ pkgs.codex ];
         in {
           default = pkgs.stdenv.mkDerivation {
             pname = "ainex";
-            version = "0.1.0";
+            version = "0.3.0";
             src = self;
-            nativeBuildInputs = with pkgs; [ rustc cargo pkg-config makeWrapper ];
+            nativeBuildInputs = with pkgs; [ cargo rustc pkg-config makeWrapper ];
             buildInputs = with pkgs; [ gtk4 glib ];
             dontConfigure = true;
             buildPhase = ''
@@ -39,35 +41,42 @@
               runHook preCheck
               cargo test --offline --manifest-path ain-source/Cargo.toml
               "$CARGO_TARGET_DIR/release/ainc" check main.ain
+              "$CARGO_TARGET_DIR/release/ainc" build tests/browser.ain -o browser-test
+              AIN_BROWSER_PYTHON="${python}/bin/python3" AINEX_CHROMIUM_BROWSER="${pkgs.chromium}/bin/chromium" ./browser-test
               runHook postCheck
             '';
             installPhase = ''
               runHook preInstall
               mkdir -p "$out/bin"
               install -m 0755 ainex "$out/bin/ainex"
-              wrapProgram "$out/bin/ainex" --prefix PATH : "${lib.makeBinPath tools}"
+              wrapProgram "$out/bin/ainex" \
+                --prefix PATH : "${lib.makeBinPath dependencies}" \
+                --set AIN_BROWSER_PYTHON "${python}/bin/python3" \
+                --set AINEX_CHROMIUM_BROWSER "${pkgs.chromium}/bin/chromium"
               runHook postInstall
             '';
             meta = {
-              description = "A native GTK4 general-purpose AI client written in Ain";
+              description = "Native GTK4 general-purpose AI client with browser tools";
               mainProgram = "ainex";
               platforms = lib.platforms.linux;
               license = lib.licenses.mit;
             };
           };
         });
-      devShells = forAllSystems (pkgs: {
-        default = pkgs.mkShell {
-          packages = with pkgs; [ rustc cargo pkg-config gtk4 glib curl jq ]
-            ++ pkgs.lib.optionals (pkgs ? codex) [ pkgs.codex ];
-          shellHook = ''
-            export CARGO_TARGET_DIR="$PWD/.ain-target"
-            ainc() {
-              cargo run --quiet --manifest-path "${ain}/Cargo.toml" -- "$@"
-            }
-            export -f ainc
-          '';
-        };
-      });
+      devShells = forAllSystems (pkgs:
+        let python = pkgs.python3.withPackages (p: [ p.playwright ]);
+        in {
+          default = pkgs.mkShell {
+            packages = with pkgs; [ rustc cargo pkg-config gtk4 glib curl jq chromium ] ++
+              [ python ] ++ pkgs.lib.optionals (pkgs ? codex) [ pkgs.codex ];
+            shellHook = ''
+              export CARGO_TARGET_DIR="$PWD/.ain-target"
+              export AIN_BROWSER_PYTHON="${python}/bin/python3"
+              export AINEX_CHROMIUM_BROWSER="${pkgs.chromium}/bin/chromium"
+              ainc() { cargo run --quiet --manifest-path "${ain}/Cargo.toml" -- "$@"; }
+              export -f ainc
+            '';
+          };
+        });
     };
 }
