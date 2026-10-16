@@ -12,10 +12,10 @@ Ainex includes a separate native **`ainex-cli` executable**, built entirely from
 
 ```sh
 # One-shot question
-nix build github:honerop/ainex && ./result/bin/ainex-cli "Explain monads"
+nix run github:honerop/ainex#cli -- "Explain monads"
 
 # Interactive terminal conversation
-nix build github:honerop/ainex && ./result/bin/ainex-cli --interactive
+nix run github:honerop/ainex#cli -- --interactive
 
 # Switch provider or model
 ainex-cli --provider opencode --model opencode/mimo-v2.6-flash-free -p "Hello"
