@@ -4,9 +4,9 @@
 
 label provider model = concat if == agent_active _ "" "Ainex" agent_active _ concat " | " concat provider concat " / " if == model "" "default" model
 layout history provider model = concat "theme\tcyan\nheader\tAinex\nhint\tASSISTANT   /   " concat label provider model concat "\nseparator\t\nconversation\t\n" concat render_history history "\nseparator\t\nhint\tMESSAGE  ·  Enter to send   ·   :help for commands\nentry\tmessage\tMessage Ainex or enter a command...\naction\tsend\tSend message   ↵\nhint\tEsc normal mode  ·  i insert  ·  j/k scroll  ·  gg/G ends\nbutton\tagents\tAgents\nbutton\ttasks\tTask queue\nbutton\topencode\tOpenCode Free\nbutton\tchatgpt\tChatGPT\nbutton\tdeepinfra\tDeepInfra\nbutton\tclear\tClear\nbutton\tquit\tExit\nvim\t1\n"
-bubble role body = concat "message\t" concat role concat "\t" concat replace body "\t" "    " "\n"
-render_line line = if == trim line "" "" if starts line "You: " bubble "user" after line "You: " if starts line "Ainex: " bubble "assistant" after line "Ainex: " if starts line "Error: " bubble "error" after line "Error: " if starts line "System: " bubble "system" after line "System: " if starts line "Browser: " bubble "info" after line "Browser: " if starts line "Queue: " bubble "system" after line "Queue: " if starts line "Help: " bubble "info" after line "Help: " bubble "info" line
-render_history history = strjoin listmap "render_line" lines history ""
+bubble role body = concat "message\t" concat role concat "\t" replace replace body "\t" "    " "\n" "\\n"
+render_line acc line = if starts line "You: " concat acc concat "\n" bubble "user" after line "You: " if starts line "Ainex: " concat acc concat "\n" bubble "assistant" after line "Ainex: " if starts line "Error: " concat acc concat "\n" bubble "error" after line "Error: " if starts line "System: " concat acc concat "\n" bubble "system" after line "System: " if starts line "Browser: " concat acc concat "\n" bubble "info" after line "Browser: " if starts line "Queue: " concat acc concat "\n" bubble "system" after line "Queue: " if == acc "" bubble "info" line concat acc concat "\\n" replace line "\t" "    "
+render_history history = listfold "render_line" "" lines history
 append history role message = concat history concat "\n" concat role concat ": " message
 answer history question response provider model page = loop append append history "You" question "Ainex" response provider model page
 # Model generation runs in an Ain background task. GTK stays on the main thread.
