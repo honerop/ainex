@@ -2,7 +2,7 @@
 # GUI layout, navigation, provider decisions, and browser actions are all AIN.
 # The language runtime implements reusable primitives.
 
-label provider model = concat provider concat " / " if == model "" "default" model
+label provider model = concat if == agent_active _ "" "Ainex" agent_active _ concat " | " concat provider concat " / " if == model "" "default" model
 layout history provider model = concat "header\tAinex | " concat label provider model concat "\nlog\t" concat replace history "\n" "  ↵  " "\nentry\tmessage\tMessage or :help\nbutton\tsend\tSend\nbutton\tdeepinfra\tDeepInfra\nbutton\tchatgpt\tChatGPT\nbutton\topencode\tOpenCode Free\nbutton\tquit\tQuit\nhint\ti insert  Esc normal  j/k scroll  gg/G top/bottom\nvim\t1\n"
 append history role message = concat history concat "\n" concat role concat ": " message
 answer history question response provider model page = loop append append history "You" question "Ainex" response provider model page
