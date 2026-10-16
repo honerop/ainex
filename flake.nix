@@ -44,6 +44,10 @@
               "$CARGO_TARGET_DIR/release/ainc" check main.ain
               "$CARGO_TARGET_DIR/release/ainc" build tests/browser.ain -o browser-test
               "$CARGO_TARGET_DIR/release/ainc" build tests/gui_task.ain -o gui-task-test
+              "$CARGO_TARGET_DIR/release/ainc" build tests/workspace.ain -o workspace-test
+              ./workspace-test > /tmp/ainex-workspace.log
+              grep -x "true" /tmp/ainex-workspace.log
+              grep -F "Hello Ainex" /tmp/ainex-workspace.log
               AIN_BROWSER_PYTHON="${python}/bin/python3" AINEX_CHROMIUM_BROWSER="${pkgs.chromium}/bin/chromium" ./browser-test
               runHook postCheck
             '';
