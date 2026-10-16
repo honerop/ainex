@@ -3,7 +3,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     ain = {
-      url = "github:honerop/ain/d366abed0155ab4e5873edbe502c9c4c7a014f6f";
+      url = "github:honerop/ain/a7047fd190b261f0a2de3a057ab995f8be228ff8";
       flake = false;
     };
   };
@@ -18,7 +18,8 @@
           lib = pkgs.lib;
           python = pkgs.python3.withPackages (p: [ p.playwright ]);
           dependencies = [ pkgs.curl pkgs.jq python pkgs.chromium ]
-            ++ lib.optionals (pkgs ? codex) [ pkgs.codex ];
+            ++ lib.optionals (pkgs ? codex) [ pkgs.codex ]
+            ++ lib.optionals (pkgs ? opencode) [ pkgs.opencode ];
         in {
           default = pkgs.stdenv.mkDerivation {
             pname = "ainex";
@@ -70,7 +71,8 @@
         in {
           default = pkgs.mkShell {
             packages = with pkgs; [ rustc cargo pkg-config gtk4 glib sqlite zlib curl jq chromium ] ++
-              [ python ] ++ pkgs.lib.optionals (pkgs ? codex) [ pkgs.codex ];
+              [ python ] ++ pkgs.lib.optionals (pkgs ? codex) [ pkgs.codex ]
+              ++ pkgs.lib.optionals (pkgs ? opencode) [ pkgs.opencode ];
             shellHook = ''
               export CARGO_TARGET_DIR="$PWD/.ain-target"
               export AIN_BROWSER_PYTHON="${python}/bin/python3"
