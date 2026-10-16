@@ -140,8 +140,36 @@ def self_test():
     assert validate_url("https://93.184.215.14/path") == "https://93.184.215.14/path"
     print("browser URL safety tests passed")
 
+def browser_smoke():
+    """Exercise the real Chromium/Playwright launch without visiting the internet."""
+    from playwright.sync_api import sync_playwright
+    with sync_playwright() as p:
+        options = {"headless": True}
+        executable = os.environ.get("AINEX_CHROMIUM_BROWSER")
+        if executable:
+            options["executable_path"] = executable
+        browser = p.chromium.launch(**options)
+        try:
+            page = browser.new_page()
+            page.set_content("""<!doctype html><html><head><title>Ainex browser test</title></head>
+                <body><p id="status">Ready</p><input id="message">
+                <button id="go" onclick="document.querySelector('#status').textContent =
+                document.querySelector('#message').value">Apply</button>
+                <a href="https://example.com/">Public link</a></body></html>""")
+            assert "Ainex browser test" in text_snapshot(page)
+            assert "Public link" in link_snapshot(page)
+            page.locator("#message").fill("Browsed")
+            page.locator("#go").click()
+            assert "Browsed" in text_snapshot(page)
+        finally:
+            browser.close()
+    print("Chromium/Playwright browser smoke test passed")
+
+
 if __name__ == "__main__":
     if "--self-test" in sys.argv:
         self_test()
+    elif "--browser-smoke" in sys.argv:
+        browser_smoke()
     else:
         serve()
