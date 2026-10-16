@@ -24,7 +24,7 @@
             pname = "ainex";
             version = "0.3.0";
             src = self;
-            nativeBuildInputs = with pkgs; [ cargo rustc pkg-config makeWrapper ];
+            nativeBuildInputs = with pkgs; [ cargo rustc pkg-config makeWrapper curl ];
             buildInputs = with pkgs; [ gtk4 glib ];
             dontConfigure = true;
             buildPhase = ''
