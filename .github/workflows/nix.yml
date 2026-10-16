@@ -13,6 +13,21 @@ jobs:
         run: nix build . --show-trace --print-build-logs
       - name: Install virtual display
         run: sudo apt-get update && sudo apt-get install -y xvfb dbus-x11
+      - name: Smoke-test asynchronous Ain GUI
+        run: |
+          set -eu
+          output=$(timeout 15s xvfb-run -a dbus-run-session ./result/libexec/ainex-tests/gui-task)
+          printf '%s\n' "$output"
+          test "$output" =         run: |
+          set +e
+          timeout 10s xvfb-run -a dbus-run-session ./result/bin/ainex > /tmp/ainex-smoke.log 2>&1
+          code=$?
+          cat /tmp/ainex-smoke.log
+          if [ "$code" -ne 124 ]; then
+            echo "Ainex should remain running with its GTK window until timeout; exited with $code"
+            exit 1
+          fi
+tick\n42'
       - name: Smoke-launch native GTK4 window
         run: |
           set +e
