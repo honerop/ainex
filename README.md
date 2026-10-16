@@ -89,6 +89,9 @@ local computer, not in Ainex's repository or a hosted Ainex account.
 | `:agents` | List agent names |
 | `:agent-use NAME` | Switch to the agent's stored provider, model and conversation |
 | `:agent-info` | Display the selected agent's saved profile |
+| `:task-add TASK` | Enqueue an instruction for the currently selected agent |
+| `:tasks` | Show the agent's saved FIFO queue and next-task position |
+| `:task-next` | Manually start the next pending task; advance only after a successful model reply |
 | `:agent ROLE|TASK` | One-off specialized role prompt, without creating a profile |
 | `:opencode` | Switch to the OpenCode Free backend |
 | `:files PATH` | List directory entries |
@@ -106,12 +109,27 @@ components. The agent database is **plaintext and not encrypted**. Running
 Ainex grants its process normal OS file access; use OS sandboxing and restrict
 access to sensitive directories if you run untrusted tasks.
 
-**Not implemented yet:** persistent autonomous background task queues,
+**Not implemented yet:** unattended/autonomous background task execution,
 automatic multi-agent delegation, bot-to-bot messaging, remote cloud computers,
 learn-by-demonstration routines, per-tool confirmation dialogs, durable browser
 sessions, and task execution after the app closes. Ainex is not at full
 OpenBot/Grok Bot feature parity. Agent workspaces currently share the process's
 filesystem access; there is no per-agent OS sandbox.
+
+
+### Queue execution semantics
+
+The `:task-add` queue is stored in the selected agent's JSON profile under
+`tasks`, with a persisted `next` index. `:task-next` runs exactly one
+queued task with the agent's saved instructions/provider. If the provider
+returns an error, the index is not advanced, so the next manual attempt
+retries the same task. A successful model reply advances the cursor and
+saves the conversation.
+
+This is **local, manually driven FIFO task execution**, not an always-on
+worker. Nothing continues after the Ainex process exits. The queue stores
+prompt strings and simple completion progress, not arbitrary background
+jobs, timers, inter-agent messages, delivery schedules or audit logs.
 
 ## Vim-style navigation
 
