@@ -94,7 +94,7 @@ fn ainex_model(model: &str) -> Result<(), String> {
 fn ainex_deepinfra(system: &str, prompt: &str, model: &str) -> Result<String, String> {
     let token = std::env::var("DEEPINFRA_API_KEY")
         .map_err(|_| "Set DEEPINFRA_API_KEY before launching Ainex".to_string())?;
-    let model = if model.is_empty() { "deepseek-ai/DeepSeek-V4-Flash-0731" } else { model };
+    let model = if model.is_empty() { "zai-org/GLM-5.3-Flash" } else { model };
     ainex_model(model)?;
     let payload = format!(
         "{{\"model\":{},\"messages\":[{{\"role\":\"system\",\"content\":{}}},{{\"role\":\"user\",\"content\":{}}}]}}",
