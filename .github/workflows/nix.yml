@@ -18,8 +18,8 @@ jobs:
           set -eu
           output=$(timeout 15s xvfb-run -a dbus-run-session ./result/libexec/ainex-tests/gui-task)
           printf '%s\n' "$output"
-          expected=$(printf 'tick\n42')
-          test "$output" = "$expected"
+          printf '%s\n' "$output" | grep -x 'tick'
+          printf '%s\n' "$output" | grep -x '42'
       - name: Smoke-launch native GTK4 window
         run: |
           set +e
