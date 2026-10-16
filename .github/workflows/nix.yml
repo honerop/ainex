@@ -12,7 +12,7 @@ jobs:
       - name: Build and test Ainex
         run: nix build . --show-trace --print-build-logs
       - name: Install virtual display
-        run: sudo apt-get update && sudo apt-get install -y xvfb dbus-x11
+        run: sudo apt-get update && sudo apt-get install -y xvfb dbus-x11 xdotool
       - name: Smoke-test asynchronous Ain GUI
         run: |
           set -eu
@@ -30,3 +30,30 @@ jobs:
             echo "Ainex should remain running with its GTK window until timeout; exited with $code"
             exit 1
           fi
+      - name: Check Vim mode typing in native GTK4 composer
+        run: |
+          set -eu
+          timeout 20s xvfb-run -a dbus-run-session bash -c '
+            set -eu
+            ./result/libexec/ainex-tests/gui-keys > /tmp/ainex-gui-keys.log &
+            pid=$!
+            trap "kill $pid 2>/dev/null || true" EXIT
+            window=""
+            for i in $(seq 1 60); do
+              window=$(xdotool search --name "Ainex keyboard test" 2>/dev/null | head -n 1 || true)
+              if [ -n "$window" ]; then break; fi
+              sleep 0.1
+            done
+            test -n "$window"
+            xdotool windowfocus --sync "$window"
+            xdotool type --clearmodifiers --delay 60 "kick"
+            xdotool key Escape
+            xdotool key k
+            xdotool key i
+            xdotool type --clearmodifiers --delay 60 "jog"
+            xdotool key Return
+            wait "$pid"
+          '
+          cat /tmp/ainex-gui-keys.log
+          grep -x "send" /tmp/ainex-gui-keys.log
+          grep -x "kickjog" /tmp/ainex-gui-keys.log

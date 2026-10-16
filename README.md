@@ -23,7 +23,7 @@ ainc run main.ain
 
 ## Native GUI in Ain
 
-The graphical interface is built using Ain's general `gui title layout` operation, which constructs a real GTK4 window and returns keyboard/button events to the Ain program.
+The graphical interface is built using Ain's general `gui title layout` operation, which constructs a real GTK4 window and returns keyboard/button events to the Ain program. Ainex opts into the runtime's cyan theme using `theme\tcyan` in the layout.
 
 ```text
 layout = "header\\tAinex\\nentry\\tmessage\\tMessage\\nbutton\\tsend\\tSend\\nvim\\t1\\n"
@@ -34,7 +34,7 @@ An Ain program can define and render windows, read typed messages, handle events
 
 ## Browser commands
 
-Inside the native window, press **i** to type:
+The native window opens in **insert mode** with the composer focused. Type straight away. Press **Esc** to navigate the transcript; press **i** or click the entry to return to typing:
 
 | Command | Behavior |
 | --- | --- |
@@ -133,7 +133,9 @@ jobs, timers, inter-agent messages, delivery schedules or audit logs.
 
 ## Vim-style navigation
 
-`i` inserts; `Esc` returns to normal mode; `j`/`k` scroll; `gg`/`G` move to top/bottom; `:` starts a command; `Enter` sends. Type `:help` for the full command list.
+Ainex starts in insert mode. In that mode **all characters**, including `i`, `j`, `k`, `g`, `G` and `:`, are ordinary input. `Esc` switches to normal mode; `i` or clicking the composer enters insert mode again. Only in normal mode do `j`/`k` scroll, `gg`/`G` jump to the ends, and `:` start a command. `Enter` sends a message.
+
+The GTK4 interface now uses an optional cyan theme, a separate transcript panel, a large composer and send button, a provider switcher, and direct **Agents**, **Task queue**, and **Clear** controls. The app remains written in Ain; the shared GTK renderer lives in the Ain runtime.
 
 ## Current limitations
 

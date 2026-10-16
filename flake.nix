@@ -3,7 +3,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     ain = {
-      url = "github:honerop/ain/879263046cc0fae3b20af49a6ad13d9eb32ca8fa";
+      url = "github:honerop/ain/02603b1fbf0c2d11134796042f95c77479135a5a";
       flake = false;
     };
   };
@@ -44,6 +44,7 @@
               "$CARGO_TARGET_DIR/release/ainc" check main.ain
               "$CARGO_TARGET_DIR/release/ainc" build tests/browser.ain -o browser-test
               "$CARGO_TARGET_DIR/release/ainc" build tests/gui_task.ain -o gui-task-test
+              "$CARGO_TARGET_DIR/release/ainc" build tests/gui_keys.ain -o gui-keys-test
               "$CARGO_TARGET_DIR/release/ainc" build tests/workspace.ain -o workspace-test
               "$CARGO_TARGET_DIR/release/ainc" build tests/agent_store.ain -o agent-store-test
               "$CARGO_TARGET_DIR/release/ainc" build tests/task_queue.ain -o task-queue-test
@@ -68,6 +69,7 @@
               mkdir -p "$out/bin" "$out/libexec/ainex-tests"
               install -m 0755 ainex "$out/bin/ainex"
               install -m 0755 gui-task-test "$out/libexec/ainex-tests/gui-task"
+              install -m 0755 gui-keys-test "$out/libexec/ainex-tests/gui-keys"
               wrapProgram "$out/bin/ainex" \
                 --prefix PATH : "${lib.makeBinPath dependencies}" \
                 --set AIN_BROWSER_PYTHON "${python}/bin/python3" \

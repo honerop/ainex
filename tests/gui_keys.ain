@@ -1,0 +1,3 @@
+# Regression test: printable Vim shortcut keys must reach the composer in
+# insert mode, while Esc/k/i switch to and from normal mode.
+print gui "Ainex keyboard test" "theme\tcyan\nheader\tKeyboard regression\nlog\tUse insert and normal modes\nentry\tmessage\tType here\nbutton\tsend\tSend\nvim\t1\n"

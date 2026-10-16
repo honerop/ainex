@@ -3,7 +3,7 @@
 # The language runtime implements reusable primitives.
 
 label provider model = concat if == agent_active _ "" "Ainex" agent_active _ concat " | " concat provider concat " / " if == model "" "default" model
-layout history provider model = concat "header\tAinex | " concat label provider model concat "\nlog\t" concat replace history "\n" "  ↵  " "\nentry\tmessage\tMessage or :help\nbutton\tsend\tSend\nbutton\tdeepinfra\tDeepInfra\nbutton\tchatgpt\tChatGPT\nbutton\topencode\tOpenCode Free\nbutton\tquit\tQuit\nhint\ti insert  Esc normal  j/k scroll  gg/G top/bottom\nvim\t1\n"
+layout history provider model = concat "theme\tcyan\nheader\tAinex\nhint\tNATIVE AGENT WORKSPACE   /   " concat label provider model concat "\nseparator\t\nlog\t" concat replace history "\n" "   ↵   " "\nseparator\t\nhint\tMESSAGE    Enter to send   ·   :help for commands\nentry\tmessage\tAsk Ainex or enter a command...\naction\tsend\tSend message  ↵\nhint\tInsert mode by default  ·  Esc: normal  ·  i: insert  ·  j/k: scroll  ·  gg/G: ends\nbutton\tagents\tAgents\nbutton\ttasks\tTask queue\nbutton\topencode\tOpenCode Free\nbutton\tchatgpt\tChatGPT\nbutton\tdeepinfra\tDeepInfra\nbutton\tclear\tClear\nbutton\tquit\tExit\nvim\t1\n"
 append history role message = concat history concat "\n" concat role concat ": " message
 answer history question response provider model page = loop append append history "You" question "Ainex" response provider model page
 # Model generation runs in an Ain background task. GTK stays on the main thread.
@@ -19,7 +19,7 @@ answer_page text history provider model page = if == page "" loop append history
 browser_result result history provider model = loop append history "Browser" result provider model result
 browser_request op arg history provider model = browser_result browser op arg history provider model
 loop history provider model page = dispatch gui "Ainex" layout history provider model history provider model page
-dispatch event history provider model page = if == before event "\n" "quit" "Window closed" if == before event "\n" "chatgpt" agent_switch_provider "chatgpt" history page if == before event "\n" "deepinfra" agent_switch_provider "deepinfra" history page if == before event "\n" "opencode" agent_switch_provider "opencode" history page if == before event "\n" "send" handle after event "\n" history provider model page loop history provider model page
+dispatch event history provider model page = if == before event "\n" "quit" "Window closed" if == before event "\n" "chatgpt" agent_switch_provider "chatgpt" history page if == before event "\n" "deepinfra" agent_switch_provider "deepinfra" history page if == before event "\n" "opencode" agent_switch_provider "opencode" history page if == before event "\n" "agents" agent_list history provider model page if == before event "\n" "tasks" task_show history provider model page if == before event "\n" "clear" loop "Ready. Type :help for commands." provider model page if == before event "\n" "send" handle after event "\n" history provider model page loop history provider model page
 handle message history provider model page = if == trim message "" loop history provider model page if starts message ":" cmd1 message history provider model page answer_request message history provider model page
 cmd1 text history provider model page = if == text ":clear" loop "Ready. Type :help for commands." provider model page cmd2 text history provider model page
 cmd2 text history provider model page = if == text ":help" loop append history "Help" ":browse URL  :page  :links  :back  :click CSS  :fill CSS|value  :screenshot name.png  :ask question  :model ID  :deepinfra  :chatgpt  :opencode  :files PATH  :read PATH  :save PATH  :load PATH  :exec JSON  :agent ROLE|TASK  :agent-new NAME|ROLE  :agents  :agent-use NAME  :agent-info  :task-add TASK  :tasks  :task-next  :review PATH  :plan TASK  :cwd  :clear" provider model page cmd3 text history provider model page
@@ -109,7 +109,7 @@ agent_switch_model selected history provider page = if == agent_active _ "" loop
 agent_model_write selected history provider page = agent_model_done fswrite agent_file _ encode put agent_db _ "agents" put agent_records _ agent_active _ put field agent_records _ agent_active _ "model" boxstr selected selected history provider page
 agent_model_done _ selected history provider page = loop history provider selected page
 # Restore the current agent, its conversation, and provider on application launch.
-agent_startup _ = if == agent_active _ "" loop "Ainex ready. Press i and type a message or :help." "opencode" "" "" agent_resume field agent_records _ agent_active _
+agent_startup _ = if == agent_active _ "" loop "Ainex ready. Type a message or :help." "opencode" "" "" agent_resume field agent_records _ agent_active _
 agent_resume profile = loop append astext field profile "history" "System" "Resumed saved agent. Use :help for commands." astext field profile "provider" astext field profile "model" ""
 
 print agent_startup _
