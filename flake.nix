@@ -3,7 +3,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     ain = {
-      url = "github:honerop/ain/d366abed0155ab4e5873edbe502c9c4c7a014f6f";
+      url = "github:honerop/ain/206114c52a038d259735dd124ee4e0727f0677dd";
       flake = false;
     };
   };
@@ -18,7 +18,8 @@
           lib = pkgs.lib;
           python = pkgs.python3.withPackages (p: [ p.playwright ]);
           dependencies = [ pkgs.curl pkgs.jq python pkgs.chromium ]
-            ++ lib.optionals (pkgs ? codex) [ pkgs.codex ];
+            ++ lib.optionals (pkgs ? codex) [ pkgs.codex ]
+            ++ lib.optionals (pkgs ? opencode) [ pkgs.opencode ];
         in {
           default = pkgs.stdenv.mkDerivation {
             pname = "ainex";
@@ -43,6 +44,10 @@
               "$CARGO_TARGET_DIR/release/ainc" check main.ain
               "$CARGO_TARGET_DIR/release/ainc" build tests/browser.ain -o browser-test
               "$CARGO_TARGET_DIR/release/ainc" build tests/gui_task.ain -o gui-task-test
+              "$CARGO_TARGET_DIR/release/ainc" build tests/workspace.ain -o workspace-test
+              ./workspace-test > /tmp/ainex-workspace.log
+              grep -x "true" /tmp/ainex-workspace.log
+              grep -F "Hello Ainex" /tmp/ainex-workspace.log
               AIN_BROWSER_PYTHON="${python}/bin/python3" AINEX_CHROMIUM_BROWSER="${pkgs.chromium}/bin/chromium" ./browser-test
               runHook postCheck
             '';
@@ -70,7 +75,8 @@
         in {
           default = pkgs.mkShell {
             packages = with pkgs; [ rustc cargo pkg-config gtk4 glib sqlite zlib curl jq chromium ] ++
-              [ python ] ++ pkgs.lib.optionals (pkgs ? codex) [ pkgs.codex ];
+              [ python ] ++ pkgs.lib.optionals (pkgs ? codex) [ pkgs.codex ]
+              ++ pkgs.lib.optionals (pkgs ? opencode) [ pkgs.opencode ];
             shellHook = ''
               export CARGO_TARGET_DIR="$PWD/.ain-target"
               export AIN_BROWSER_PYTHON="${python}/bin/python3"
