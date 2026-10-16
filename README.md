@@ -1,70 +1,74 @@
 # Ainex
 
-A general-purpose AI client implemented in [Ain](https://github.com/honerop/ain), with a **native GTK4 desktop interface** for NixOS and other Linux systems. The GUI is not a browser app, webview, or Electron shell.
+Ainex is an experimental, general-purpose AI assistant with a **native GTK4 window** and browser tools. The entry point is written in [Ain](https://github.com/honerop/ain), a general-purpose language designed exclusively for AI-generated source code. GTK, model provider integrations, and the isolated browser runner live in Ainex, not inside the Ain compiler.
 
-The Ain entry point is [`main.ain`](main.ain). Ain's experimental `desktop` builtin implements the native GTK4 window and provider adapters in its Rust code-generation runtime. This is an initial desktop chat client, not yet a fully autonomous tool-using agent.
+This is a desktop application, **not** an Electron app or a browser UI. Browser actions are explicit commands for now; the model does not autonomously click or submit forms.
 
-## Run on NixOS
+## NixOS
 
 ```sh
 nix run github:honerop/ainex
 ```
 
-Or use a development checkout:
+For development:
 
 ```sh
 git clone https://github.com/honerop/ainex.git
 cd ainex
 nix develop
-ainc check main.ain
-ainc run main.ain
+nix run .
 ```
 
-The flake pins an Ain revision containing the native GTK4 desktop builtin, installs GTK4 build dependencies, and includes curl, jq, and Codex when available in nixpkgs.
+The Nix flake compiles the Ain entry point and native GTK4 executable and provides Playwright, Chromium, curl, and jq.
+
+## Browser usage
+
+In the native window press **i**, then type one of these commands:
+
+| Command | Purpose |
+| --- | --- |
+| `:browse https://example.com` | Open a public site in isolated Chromium and read its text |
+| `:page` | Read the current page |
+| `:links` | List the page's links |
+| `:click CSS_SELECTOR` | Click the first matching element |
+| `:fill CSS_SELECTOR \| value` | Fill the first matching field |
+| `:back` | Navigate back |
+| `:screenshot name.png` | Save a PNG in the XDG cache directory |
+| `:ask QUESTION` | Ask the selected model about the most recently read page |
+
+The Playwright session has an ephemeral browser profile, blocks downloads and local/private URLs, and does not reuse personal browser cookies. It defaults to headless mode; set `AINEX_BROWSER_HEADLESS=0` to see the controlled Chromium window.
+
+**Safety:** browser pages are untrusted. Extracted page text is only shared with the chosen AI model when using `:ask`; the browser never acts on model-generated instructions automatically. This version is intended for public sites rather than authenticated accounts.
 
 ## Providers
 
-### ChatGPT via the official Codex CLI
+**ChatGPT / Codex:** Install the official Codex CLI, run `codex login`, and choose **ChatGPT / Codex**. It uses Codex's official ChatGPT login and plan entitlements, not an unofficial subscription API. Codex runs read-only here. A ChatGPT Plus subscription is not an OpenAI API key.
 
-```sh
-codex login
-nix run .
+**DeepInfra:** Set `DEEPINFRA_API_KEY` before launch, then choose **DeepInfra**. The default model is `deepseek-ai/DeepSeek-V4-Flash-0731`, or enter another available model ID in the window.
+
+Credentials are never stored in the Ainex repository. Provider credentials and live API behavior need user-side validation.
+
+## Keyboard commands
+
+`i` inserts, `Esc` goes to normal mode, `j`/`k` scroll, `gg`/`G` jump to top/bottom, `:` starts a command, and `Enter` sends. Other commands: `:help`, `:clear`, `:deepinfra`, `:chatgpt`, and `:model MODEL`.
+
+## Architecture
+
+```text
+main.ain --Ain run--> ainex-host (GTK4 window)
+                             |-- official Codex CLI
+                             |-- DeepInfra chat-completions
+                             +-- browser/driver.py -> Chromium (Playwright)
 ```
 
-Choose **ChatGPT / Codex**. This uses the authenticated Codex CLI (subject to subscription entitlements and limits), not an unofficial ChatGPT API. A ChatGPT Plus subscription is not an OpenAI API token. Ainex does not read Codex's credential files. Codex operates in read-only mode in this version.
+Ain's `run` primitive is generic, rather than teaching the compiler about GTK4, providers, or browsers. App-specific integration stays in Ainex.
 
-If the Nix environment lacks a `codex` binary, install the official Codex CLI and ensure it is on your PATH.
+## Current limitations
 
-### DeepInfra
+- Native GTK4 desktop on Linux/NixOS only
+- Plain-text replies, single-line composer, no persistent chat history
+- Browser sessions are temporary and actions require explicit user input
+- No autonomous agent tool loop yet
+- CI verifies compiler, packaging, and local tests, but does not authenticate with live model providers
 
-```sh
-export DEEPINFRA_API_KEY="YOUR_DEEPINFRA_TOKEN"
-nix run .
-```
-
-Choose **DeepInfra** and optionally enter the exact model identifier. The default is `deepseek-ai/DeepSeek-V4-Flash-0731`. DeepInfra's OpenAI-compatible chat-completions endpoint is used. Never commit credentials.
-
-## Vim-style navigation
-
-| Key | Action |
-| --- | --- |
-| `i` | Focus composer / insert mode |
-| `Esc` | Normal mode |
-| `j` / `k` | Scroll conversation |
-| `gg` / `G` | Jump to top / bottom |
-| `:` | Start a command |
-| `Enter` | Send a message or run a command |
-| `:help` | Show shortcuts |
-| `:clear` | Clear on-screen history |
-| `:deepinfra` / `:chatgpt` | Switch provider |
-| `:model MODEL` | Set model |
-
-## Limitations
-
-- Linux-only native GTK4 GUI, with NixOS packaging.
-- Single-line composer and plain-text replies.
-- Conversations are kept in memory in the UI; requests do **not** retain model history yet.
-- Ain's LLVM backend does not currently implement the desktop builtin; use the Rust backend.
-- No arbitrary command execution, browser control, or persistent agent tasks yet.
-
-License: MIT.
+MIT licensed.
