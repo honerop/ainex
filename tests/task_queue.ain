@@ -6,7 +6,7 @@ fswrite "ainex-test-queue.json" encode state
 loaded = field tryjson result_get tryread "ainex-test-queue.json" "{}" "value"
 items = field field field loaded "agents" "Teacher" "tasks"
 cursor = asint field field field loaded "agents" "Teacher" "next"
-print asint size items
+print size items
 print astext get items cursor
 advanced = put field field loaded "agents" "Teacher" "next" boxint + cursor 1
 saved = put loaded "agents" put field loaded "agents" "Teacher" advanced
