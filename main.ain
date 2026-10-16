@@ -1,0 +1,6 @@
+# Ainex: a general-purpose native desktop assistant written in Ain.
+# GTK4 widgets and provider adapters are exposed through Ain's desktop builtin.
+name = "Ainex"
+role = concat "You are " concat name ", a useful general-purpose assistant. Be concise and accurate; explain uncertainty. Never claim to have performed actions that were not performed. Ask before potentially destructive operations."
+welcome = "Native desktop ready. Press i to type, Escape for normal mode, or :help for shortcuts."
+desktop name role welcome
