@@ -46,6 +46,12 @@
               "$CARGO_TARGET_DIR/release/ainc" build tests/gui_task.ain -o gui-task-test
               "$CARGO_TARGET_DIR/release/ainc" build tests/workspace.ain -o workspace-test
               "$CARGO_TARGET_DIR/release/ainc" build tests/agent_store.ain -o agent-store-test
+              "$CARGO_TARGET_DIR/release/ainc" build tests/task_queue.ain -o task-queue-test
+              ./task-queue-test > /tmp/ainex-task-queue.log
+              grep -x '2' /tmp/ainex-task-queue.log
+              grep -x 'Explain monads' /tmp/ainex-task-queue.log
+              grep -x '1' /tmp/ainex-task-queue.log
+              grep -x 'Review source' /tmp/ainex-task-queue.log
               ./agent-store-test > /tmp/ainex-agent-store.log
               grep -x 'true' /tmp/ainex-agent-store.log
               grep -x 'Teacher' /tmp/ainex-agent-store.log

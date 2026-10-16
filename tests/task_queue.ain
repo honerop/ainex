@@ -1,0 +1,17 @@
+# Persistent FIFO queue stored entirely as JSON by Ain.
+queued = push push array _ boxstr "Explain monads" boxstr "Review source"
+profile = put put record _ "tasks" queued "next" boxint 0
+state = put put record _ "agents" put record _ "Teacher" profile "selected" boxstr "Teacher"
+fswrite "ainex-test-queue.json" encode state
+loaded = field tryjson result_get tryread "ainex-test-queue.json" "{}" "value"
+items = field field field loaded "agents" "Teacher" "tasks"
+cursor = asint field field field loaded "agents" "Teacher" "next"
+print size items
+print astext get items cursor
+advanced = put field field loaded "agents" "Teacher" "next" boxint + cursor 1
+saved = put loaded "agents" put field loaded "agents" "Teacher" advanced
+fswrite "ainex-test-queue.json" encode saved
+reloaded = field tryjson result_get tryread "ainex-test-queue.json" "{}" "value"
+print asint field field field reloaded "agents" "Teacher" "next"
+print astext get field field field reloaded "agents" "Teacher" "tasks" 1
+print asbool field fsremove "ainex-test-queue.json" "ok"
