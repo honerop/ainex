@@ -3,7 +3,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     ain = {
-      url = "github:honerop/ain/20a61bdf85a8dd01a265cd7fc72f4bc72eecc24e";
+      url = "github:honerop/ain/d366abed0155ab4e5873edbe502c9c4c7a014f6f";
       flake = false;
     };
   };
