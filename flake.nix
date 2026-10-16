@@ -46,6 +46,15 @@
               "$CARGO_TARGET_DIR/release/ainc" check cli.ain
               ./ainex-cli --help > /tmp/ainex-cli-help.log
               grep -F "ainex-cli --interactive" /tmp/ainex-cli-help.log
+              cat > opencode-mock <<'EOF'
+              #!/bin/sh
+              printf '%s\n' '{"type":"text","part":{"type":"text","text":"CLI smoke reply"}}'
+              EOF
+              chmod +x opencode-mock
+              AIN_OPENCODE_BIN="$PWD/opencode-mock" ./ainex-cli -p "test" > /tmp/ainex-cli-reply.log
+              grep -F "CLI smoke reply" /tmp/ainex-cli-reply.log
+              printf 'hello\n/quit\n' | AIN_OPENCODE_BIN="$PWD/opencode-mock" ./ainex-cli --interactive > /tmp/ainex-cli-session.log
+              grep -F "CLI smoke reply" /tmp/ainex-cli-session.log
               "$CARGO_TARGET_DIR/release/ainc" build tests/browser.ain -o browser-test
               "$CARGO_TARGET_DIR/release/ainc" build tests/gui_task.ain -o gui-task-test
               "$CARGO_TARGET_DIR/release/ainc" build tests/gui_keys.ain -o gui-keys-test
@@ -92,6 +101,12 @@
           };
 
         });
+      apps = forAllSystems (pkgs: {
+        cli = {
+          type = "app";
+          program = "${self.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/ainex-cli";
+        };
+      });
       devShells = forAllSystems (pkgs:
         let python = pkgs.python3.withPackages (p: [ p.playwright ]);
         in {
