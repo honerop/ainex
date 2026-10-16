@@ -94,8 +94,8 @@ task_show history provider model page = if == agent_active _ "" loop append hist
 task_next history provider model page = if == agent_active _ "" loop append history "Queue" "Select an agent first." provider model page if >= task_cursor _ size task_items _ loop append history "Queue" "No pending tasks." provider model page task_start astext get task_items _ task_cursor _ history provider model page
 task_start task history provider model page = task_painted guiupdate "Ainex" layout append history "Queue" concat "Running task: " task provider model task history provider model page
 task_painted _ task history provider model page = task_watch spawn "request" request_payload provider model agent_prompt agent_active_role _ task history task provider model page
-task_watch job history task provider model page = if ready job task_finish history task astext wait job provider model page task_poll before guitick 50 "\n" job history task provider model page
-task_poll action job history task provider model page = if == action "quit" "Window closed" task_watch job history task provider model page
+task_watch job history task provider model page = if ready job task_finish history task astext wait job provider model page queued_tick before guitick 50 "\n" job history task provider model page
+queued_tick action job history task provider model page = if == action "quit" "Window closed" task_watch job history task provider model page
 task_finish history task response provider model page = if starts response "Provider error:" agent_store_response append append history "Task" task "Ainex" response provider model page task_finish_success append append history "Task" task "Ainex" response provider model page
 task_finish_success transcript provider model page = task_saved fswrite agent_file _ encode put agent_db _ "agents" put agent_records _ agent_active _ put put field agent_records _ agent_active _ "history" boxstr transcript "next" boxint + task_cursor _ 1 transcript provider model page
 task_saved _ transcript provider model page = loop transcript provider model page
