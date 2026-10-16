@@ -1,10 +1,30 @@
 # Ainex
 
-Ainex is a **general-purpose native GTK4 desktop assistant written entirely in [Ain](https://github.com/honerop/ain)**. Every part of the application behavior lives in [`main.ain`](main.ain): native GUI layout, navigation, chat/provider choices, and browser commands.
+Ainex is a **general-purpose native GTK4 desktop and terminal assistant written entirely in [Ain](https://github.com/honerop/ain)**. Every part of the application behavior lives in [`main.ain`](main.ain): native GUI layout, navigation, chat/provider choices, and browser commands.
 
 **No Rust, Python, JavaScript or other application source code exists in this repository.** Ain's compiler and reusable standard runtime are responsible for translating Ain to native code and providing GTK4 widgets, HTTP/AI support and isolated Playwright Chromium automation. Nix is only used for packaging and dependencies.
 
 Ain is a general-purpose programming language designed **exclusively for AI-generated code**, with a deliberately extensive built-in library.
+
+## Terminal interface
+
+Ainex includes a separate native **`ainex-cli` executable**, built entirely from [`cli.ain`](cli.ain). The CLI does not require a GTK display.
+
+```sh
+# One-shot question
+nix build github:honerop/ainex && ./result/bin/ainex-cli "Explain monads"
+
+# Interactive terminal conversation
+nix build github:honerop/ainex && ./result/bin/ainex-cli --interactive
+
+# Switch provider or model
+ainex-cli --provider opencode --model opencode/mimo-v2.6-flash-free -p "Hello"
+
+# Read a named agent's role and history from your existing local agent store
+ainex-cli --agent Teacher --interactive
+```
+
+Run `ainex-cli --help` for all flags. Inside interactive mode use `/help`, `/clear`, or `/quit`. The terminal client reads saved agents but does not overwrite GUI profile files; unsaved CLI history stays in the current process. The new reusable Ain builtins `argv _` and `readline _` allow terminal apps without Rust application code or GTK.
 
 ## Run on NixOS
 
@@ -20,6 +40,10 @@ cd ainex
 nix develop
 ainc run main.ain
 ```
+
+## Redesigned GTK interface
+
+The conversation is no longer a single unstructured log. Ain's reusable native GUI renderer now supports a `conversation` container and individually styled `message<TAB>role<TAB>text` cards. User messages, agent responses, system notes, and **errors** render in distinct GTK panels. The cyan design uses responsive button rows and a dedicated message composer, all without Electron or web views.
 
 ## Native GUI in Ain
 

@@ -3,7 +3,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     ain = {
-      url = "github:honerop/ain/02603b1fbf0c2d11134796042f95c77479135a5a";
+      url = "github:honerop/ain/f0fdaf688cf4f010afc82702bc80e0be284bee01";
       flake = false;
     };
   };
@@ -35,6 +35,7 @@
               export CARGO_TARGET_DIR="$PWD/ain-target"
               cargo build --offline --release --manifest-path ain-source/Cargo.toml
               "$CARGO_TARGET_DIR/release/ainc" build main.ain -o ainex
+              "$CARGO_TARGET_DIR/release/ainc" build cli.ain -o ainex-cli
               runHook postBuild
             '';
             doCheck = true;
@@ -42,6 +43,9 @@
               runHook preCheck
               cargo test --offline --manifest-path ain-source/Cargo.toml
               "$CARGO_TARGET_DIR/release/ainc" check main.ain
+              "$CARGO_TARGET_DIR/release/ainc" check cli.ain
+              ./ainex-cli --help > /tmp/ainex-cli-help.log
+              grep -F "ainex-cli --interactive" /tmp/ainex-cli-help.log
               "$CARGO_TARGET_DIR/release/ainc" build tests/browser.ain -o browser-test
               "$CARGO_TARGET_DIR/release/ainc" build tests/gui_task.ain -o gui-task-test
               "$CARGO_TARGET_DIR/release/ainc" build tests/gui_keys.ain -o gui-keys-test
@@ -68,8 +72,11 @@
               runHook preInstall
               mkdir -p "$out/bin" "$out/libexec/ainex-tests"
               install -m 0755 ainex "$out/bin/ainex"
+              install -m 0755 ainex-cli "$out/bin/ainex-cli"
               install -m 0755 gui-task-test "$out/libexec/ainex-tests/gui-task"
               install -m 0755 gui-keys-test "$out/libexec/ainex-tests/gui-keys"
+              wrapProgram "$out/bin/ainex-cli" \
+                --prefix PATH : "${lib.makeBinPath dependencies}"
               wrapProgram "$out/bin/ainex" \
                 --prefix PATH : "${lib.makeBinPath dependencies}" \
                 --set AIN_BROWSER_PYTHON "${python}/bin/python3" \
@@ -83,6 +90,7 @@
               license = lib.licenses.mit;
             };
           };
+
         });
       devShells = forAllSystems (pkgs:
         let python = pkgs.python3.withPackages (p: [ p.playwright ]);

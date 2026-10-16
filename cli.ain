@@ -1,0 +1,37 @@
+# Ainex terminal client, fully implemented in Ain.
+# Generic argv/readline/chat primitives are provided by the Ain runtime.
+help_text _ = "Ainex CLI\n\n  ainex-cli [prompt words]\n  ainex-cli --prompt \"Explain monads\"\n  ainex-cli --interactive\n  ainex-cli --provider opencode --model opencode/mimo-v2.6-flash-free \"Hello\"\n  ainex-cli --agent NAME --interactive\n\nOptions:\n  -p, --prompt TEXT       Send one prompt\n  -i, --interactive       Continue chatting after a prompt\n      --provider NAME     opencode (default), chatgpt, deepinfra\n  -m, --model ID         Override the model\n  -a, --agent NAME       Use a local saved Ainex agent profile\n  -h, --help             Display help\n  -V, --version          Display version\n\nChat commands: /help, /clear, /quit\nThe CLI reads saved agent history but does not overwrite it."
+defaults _ = put put put put record _ "prompt" boxstr "" "provider" boxstr "" "model" boxstr "" "agent" boxstr ""
+at_arg args index = astext get args index
+join_prompt old next = if == old "" next concat old concat " " next
+parse_arguments args index options = if >= index size args options parse_argument args index options
+value_option args index options key = if >= + index 1 size args put options "error" boxstr concat "Missing value after " at_arg args index parse_arguments args + index 2 put options key boxstr at_arg args + index 1
+parse_argument args index options = if == at_arg args index "--help" put options "help" boxbool true if == at_arg args index "-h" put options "help" boxbool true if == at_arg args index "--version" put options "version" boxbool true if == at_arg args index "-V" put options "version" boxbool true if == at_arg args index "--provider" value_option args index options "provider" if == at_arg args index "--model" value_option args index options "model" if == at_arg args index "-m" value_option args index options "model" if == at_arg args index "--agent" value_option args index options "agent" if == at_arg args index "-a" value_option args index options "agent" if == at_arg args index "--prompt" value_option args index options "prompt" if == at_arg args index "-p" value_option args index options "prompt" if == at_arg args index "--interactive" parse_arguments args + index 1 put options "interactive" boxbool true if == at_arg args index "-i" parse_arguments args + index 1 put options "interactive" boxbool true if starts at_arg args index "-" put options "error" boxstr concat "Unknown option: " at_arg args index parse_arguments args + index 1 put options "prompt" boxstr join_prompt astext field options "prompt" at_arg args index
+agent_file _ = pathjoin pathjoin environ "HOME" ".local/share/ainex" "agents.json"
+agent_data _ = if asbool field tryjson result_get tryread agent_file _ "{}" "ok" field tryjson result_get tryread agent_file _ "{}" "value" record _
+agent_records db = if hasfield db "agents" field db "agents" record _
+agent_name options db = if == astext field options "agent" "" if hasfield db "selected" astext field db "selected" "" astext field options "agent"
+agent_profile options db = if hasfield agent_records db agent_name options db field agent_records db agent_name options db record _
+profile_provider profile = if hasfield profile "provider" astext field profile "provider" "opencode"
+profile_model profile = if hasfield profile "model" astext field profile "model" ""
+profile_role profile = if hasfield profile "role" astext field profile "role" "General-purpose assistant"
+profile_history profile = if hasfield profile "history" astext field profile "history" ""
+choose_provider options profile = if == astext field options "provider" "" profile_provider profile astext field options "provider"
+choose_model options profile = if == astext field options "model" "" profile_model profile astext field options "model"
+choose_role profile = profile_role profile
+add history who message = concat history concat "\n" concat who concat ": " message
+context history = if > len history 12000 "Earlier conversation omitted because it exceeded the context limit." history
+make_prompt question history role = concat "You are Ainex. Act as a general-purpose assistant. Your selected agent role is: " concat role concat "\nDo not claim actions without results.\nConversation:\n" concat context history concat "\nUser: " question
+repl history provider model role = consume readline _ history provider model role
+consume result history provider model role = if asbool field result "ok" dispatch trim astext field result "value" history provider model role print "Session ended."
+dispatch message history provider model role = if == message "/quit" print "Bye." if == message "/exit" print "Bye." if == message "/clear" after_message print "History cleared." "" provider model role if == message "/help" after_message print "Commands: /help  /clear  /quit" history provider model role if == message "" repl history provider model role ask message history provider model role true
+after_message _ history provider model role = repl history provider model role
+ask question history provider model role interactive = received question history provider model role interactive chat provider model make_prompt question history role
+received question history provider model role interactive response = printed print concat "\nAinex> " response question history provider model role interactive response
+printed _ question history provider model role interactive response = if interactive repl if starts response "Provider error:" history add add history "You" question "Ainex" response provider model role _
+start_session options profile = start_selected options choose_provider options profile choose_model options profile choose_role profile profile_history profile
+start_selected options provider model role history = if == astext field options "prompt" "" interactive_start history provider model role ask astext field options "prompt" history provider model role hasfield options "interactive"
+interactive_start history provider model role = after_message print concat "Ainex CLI  ·  " concat provider "\nType /help for commands, /quit to exit." history provider model role
+cli_start options = if hasfield options "error" print concat "Error: " astext field options "error" if hasfield options "help" print help_text _ if hasfield options "version" print "Ainex CLI 0.4" start_profile options agent_data _
+start_profile options db = if != astext field options "agent" "" if hasfield agent_records db astext field options "agent" start_session options agent_profile options db print concat "Unknown agent: " astext field options "agent" start_session options agent_profile options db
+cli_start parse_arguments argv _ 0 defaults _

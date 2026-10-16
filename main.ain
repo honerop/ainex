@@ -3,7 +3,10 @@
 # The language runtime implements reusable primitives.
 
 label provider model = concat if == agent_active _ "" "Ainex" agent_active _ concat " | " concat provider concat " / " if == model "" "default" model
-layout history provider model = concat "theme\tcyan\nheader\tAinex\nhint\tNATIVE AGENT WORKSPACE   /   " concat label provider model concat "\nseparator\t\nlog\t" concat replace history "\n" "   ↵   " "\nseparator\t\nhint\tMESSAGE    Enter to send   ·   :help for commands\nentry\tmessage\tAsk Ainex or enter a command...\naction\tsend\tSend message  ↵\nhint\tInsert mode by default  ·  Esc: normal  ·  i: insert  ·  j/k: scroll  ·  gg/G: ends\nbutton\tagents\tAgents\nbutton\ttasks\tTask queue\nbutton\topencode\tOpenCode Free\nbutton\tchatgpt\tChatGPT\nbutton\tdeepinfra\tDeepInfra\nbutton\tclear\tClear\nbutton\tquit\tExit\nvim\t1\n"
+layout history provider model = concat "theme\tcyan\nheader\tAinex\nhint\tASSISTANT   /   " concat label provider model concat "\nseparator\t\nconversation\t\n" concat render_history history "\nseparator\t\nhint\tMESSAGE  ·  Enter to send   ·   :help for commands\nentry\tmessage\tMessage Ainex or enter a command...\naction\tsend\tSend message   ↵\nhint\tEsc normal mode  ·  i insert  ·  j/k scroll  ·  gg/G ends\nbutton\tagents\tAgents\nbutton\ttasks\tTask queue\nbutton\topencode\tOpenCode Free\nbutton\tchatgpt\tChatGPT\nbutton\tdeepinfra\tDeepInfra\nbutton\tclear\tClear\nbutton\tquit\tExit\nvim\t1\n"
+bubble role body = concat "message\t" concat role concat "\t" concat replace body "\t" "    " "\n"
+render_line line = if == trim line "" "" if starts line "You: " bubble "user" after line "You: " if starts line "Ainex: " bubble "assistant" after line "Ainex: " if starts line "Error: " bubble "error" after line "Error: " if starts line "System: " bubble "system" after line "System: " if starts line "Browser: " bubble "info" after line "Browser: " if starts line "Queue: " bubble "system" after line "Queue: " if starts line "Help: " bubble "info" after line "Help: " bubble "info" line
+render_history history = strjoin listmap "render_line" lines history ""
 append history role message = concat history concat "\n" concat role concat ": " message
 answer history question response provider model page = loop append append history "You" question "Ainex" response provider model page
 # Model generation runs in an Ain background task. GTK stays on the main thread.
@@ -79,7 +82,7 @@ agent_info history provider model page = if == agent_active _ "" loop append his
 agent_store_response transcript provider model page = if == agent_active _ "" loop transcript provider model page agent_store_selected agent_active _ transcript provider model page
 agent_store_selected name transcript provider model page = agent_stored fswrite agent_file _ encode put agent_db _ "agents" put agent_records _ name put field agent_records _ name "history" boxstr transcript transcript provider model page
 agent_stored _ transcript provider model page = loop transcript provider model page
-agent_complete history question response provider model page = agent_store_response append append history "You" question "Ainex" response provider model page
+agent_complete history question response provider model page = agent_store_response append append history "You" question if starts response "Provider error:" "Error" "Ainex" response provider model page
 
 
 # Durable per-agent FIFO queue, deliberately executed only on user request.
@@ -96,7 +99,7 @@ task_start task history provider model page = task_painted guiupdate "Ainex" lay
 task_painted _ task history provider model page = task_watch spawn "request" request_payload provider model agent_prompt agent_active_role _ task history task provider model page
 task_watch job history task provider model page = if ready job task_finish history task astext wait job provider model page queued_tick before guitick 50 "\n" job history task provider model page
 queued_tick action job history task provider model page = if == action "quit" "Window closed" task_watch job history task provider model page
-task_finish history task response provider model page = if starts response "Provider error:" agent_store_response append append history "Task" task "Ainex" response provider model page task_finish_success append append history "Task" task "Ainex" response provider model page
+task_finish history task response provider model page = if starts response "Provider error:" agent_store_response append append history "Task" task "Error" response provider model page task_finish_success append append history "Task" task "Ainex" response provider model page
 task_finish_success transcript provider model page = task_saved fswrite agent_file _ encode put agent_db _ "agents" put agent_records _ agent_active _ put put field agent_records _ agent_active _ "history" boxstr transcript "next" boxint + task_cursor _ 1 transcript provider model page
 task_saved _ transcript provider model page = loop transcript provider model page
 
