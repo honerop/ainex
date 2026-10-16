@@ -3,7 +3,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     ain = {
-      url = "github:honerop/ain/b93ea337e4bf8db6b0c8e34a4808d4f3d59fb2e7";
+      url = "github:honerop/ain/feature/native-gui-ai-runtime";
       flake = false;
     };
   };
@@ -22,7 +22,7 @@
         in {
           default = pkgs.stdenv.mkDerivation {
             pname = "ainex";
-            version = "0.2.0";
+            version = "0.3.0";
             src = self;
             nativeBuildInputs = with pkgs; [ cargo rustc pkg-config makeWrapper ];
             buildInputs = with pkgs; [ gtk4 glib ];
@@ -34,13 +34,6 @@
               export CARGO_TARGET_DIR="$PWD/ain-target"
               cargo build --offline --release --manifest-path ain-source/Cargo.toml
               "$CARGO_TARGET_DIR/release/ainc" build main.ain -o ainex
-              gtk_links=()
-              for flag in $(pkg-config --libs-only-L gtk4); do
-                case "$flag" in
-                  -L*) gtk_links+=(-L "native=''${flag#-L}") ;;
-                esac
-              done
-              rustc --edition=2021 -O src/main.rs -o ainex-host "''${gtk_links[@]}"
               runHook postBuild
             '';
             doCheck = true;
@@ -48,19 +41,17 @@
               runHook preCheck
               cargo test --offline --manifest-path ain-source/Cargo.toml
               "$CARGO_TARGET_DIR/release/ainc" check main.ain
-              ${python}/bin/python3 browser/driver.py --self-test
+              "$CARGO_TARGET_DIR/release/ainc" build tests/browser.ain -o browser-test
+              AIN_BROWSER_PYTHON="${python}/bin/python3" AINEX_CHROMIUM_BROWSER="${pkgs.chromium}/bin/chromium" ./browser-test
               runHook postCheck
             '';
             installPhase = ''
               runHook preInstall
-              mkdir -p "$out/bin" "$out/libexec" "$out/share/ainex/browser"
+              mkdir -p "$out/bin"
               install -m 0755 ainex "$out/bin/ainex"
-              install -m 0755 ainex-host "$out/libexec/ainex-host"
-              install -m 0644 browser/driver.py "$out/share/ainex/browser/driver.py"
               wrapProgram "$out/bin/ainex" \
-                --prefix PATH : "$out/libexec:${lib.makeBinPath dependencies}" \
-                --set AINEX_BROWSER_DRIVER "$out/share/ainex/browser/driver.py" \
-                --set AINEX_PYTHON "${python}/bin/python3" \
+                --prefix PATH : "${lib.makeBinPath dependencies}" \
+                --set AIN_BROWSER_PYTHON "${python}/bin/python3" \
                 --set AINEX_CHROMIUM_BROWSER "${pkgs.chromium}/bin/chromium"
               runHook postInstall
             '';
@@ -80,8 +71,7 @@
               [ python ] ++ pkgs.lib.optionals (pkgs ? codex) [ pkgs.codex ];
             shellHook = ''
               export CARGO_TARGET_DIR="$PWD/.ain-target"
-              export AINEX_BROWSER_DRIVER="$PWD/browser/driver.py"
-              export AINEX_PYTHON="${python}/bin/python3"
+              export AIN_BROWSER_PYTHON="${python}/bin/python3"
               export AINEX_CHROMIUM_BROWSER="${pkgs.chromium}/bin/chromium"
               ainc() { cargo run --quiet --manifest-path "${ain}/Cargo.toml" -- "$@"; }
               export -f ainc
