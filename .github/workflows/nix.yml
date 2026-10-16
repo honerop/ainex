@@ -46,6 +46,7 @@ jobs:
             done
             test -n "$window"
             xdotool windowfocus --sync "$window"
+            sleep 0.4  # Let GTK finish window/entry focus activation.
             xdotool type --clearmodifiers --delay 60 "kick"
             xdotool key Escape
             xdotool key k
