@@ -22,7 +22,7 @@ loop history provider model page = dispatch gui "Ainex" layout history provider 
 dispatch event history provider model page = if == before event "\n" "quit" "Window closed" if == before event "\n" "chatgpt" loop history "chatgpt" "" page if == before event "\n" "deepinfra" loop history "deepinfra" "" page if == before event "\n" "opencode" loop history "opencode" "" page if == before event "\n" "send" handle after event "\n" history provider model page loop history provider model page
 handle message history provider model page = if == trim message "" loop history provider model page if starts message ":" cmd1 message history provider model page answer_request message history provider model page
 cmd1 text history provider model page = if == text ":clear" loop "Ready. Type :help for commands." provider model page cmd2 text history provider model page
-cmd2 text history provider model page = if == text ":help" loop append history "Help" ":browse URL  :page  :links  :back  :click CSS  :fill CSS|value  :screenshot name.png  :ask question  :model ID  :deepinfra  :chatgpt  :opencode  :files PATH  :read PATH  :save PATH  :load PATH  :exec JSON  :agent ROLE|TASK  :agent-new NAME|ROLE  :agents  :agent-use NAME  :agent-info  :review PATH  :plan TASK  :cwd  :clear" provider model page cmd3 text history provider model page
+cmd2 text history provider model page = if == text ":help" loop append history "Help" ":browse URL  :page  :links  :back  :click CSS  :fill CSS|value  :screenshot name.png  :ask question  :model ID  :deepinfra  :chatgpt  :opencode  :files PATH  :read PATH  :save PATH  :load PATH  :exec JSON  :agent ROLE|TASK  :agent-new NAME|ROLE  :agents  :agent-use NAME  :agent-info  :task-add TASK  :tasks  :task-next  :review PATH  :plan TASK  :cwd  :clear" provider model page cmd3 text history provider model page
 cmd3 text history provider model page = if == text ":chatgpt" loop history "chatgpt" "" page if == text ":deepinfra" loop history "deepinfra" "" page if == text ":opencode" loop history "opencode" "" page cmd4 text history provider model page
 cmd4 text history provider model page = if starts text ":model " loop history provider after text ":model " page cmd5 text history provider model page
 cmd5 text history provider model page = if starts text ":browse " browser_request "open" after text ":browse " history provider model cmd6 text history provider model page
@@ -49,7 +49,8 @@ cmd12 text history provider model page = if starts text ":exec " execute_json tr
 review_result result filename history provider model page = if result_valid result begin_chat filename concat "Review this file for bugs, security problems and maintainability. Suggest specific changes but do not claim to have edited anything.\nFile: " concat filename concat "\nContents:\n" result_get result "" history provider model page loop append history "Error" result_error result provider model page
 cmd13 text history provider model page = if == text ":cwd" cwd_result workingdir _ history provider model page if == text ":opencode" loop history "opencode" "" page cmd14 text history provider model page
 cmd14 text history provider model page = if starts text ":review " review_result tryread after text ":review " after text ":review " history provider model page if starts text ":plan " begin_chat after text ":plan " concat "Create a careful implementation plan with verification steps, without modifying files. Task:\n" after text ":plan " history provider model page cmd15 text history provider model page
-cmd15 text history provider model page = if starts text ":agent-new " agent_create after text ":agent-new " history provider model page if == text ":agents" agent_list history provider model page if starts text ":agent-use " agent_select after text ":agent-use " history provider model page if == text ":agent-info" agent_info history provider model page loop append history "Error" "Unknown command. Use :help." provider model page
+cmd15 text history provider model page = if starts text ":agent-new " agent_create after text ":agent-new " history provider model page if == text ":agents" agent_list history provider model page if starts text ":agent-use " agent_select after text ":agent-use " history provider model page if == text ":agent-info" agent_info history provider model page cmd16 text history provider model page
+cmd16 text history provider model page = if starts text ":task-add " task_add after text ":task-add " history provider model page if == text ":tasks" task_show history provider model page if == text ":task-next" task_next history provider model page loop append history "Error" "Unknown command. Use :help." provider model page
 
 
 # Persistent local agent profiles. OpenBot and Grok Bot are design references,
@@ -62,7 +63,7 @@ agent_records _ = if hasfield agent_db _ "agents" field agent_db _ "agents" reco
 agent_active _ = if hasfield agent_db _ "selected" astext field agent_db _ "selected" ""
 agent_active_role _ = if == agent_active _ "" "General-purpose assistant" astext field field agent_records _ agent_active _ "role"
 agent_valid name = if == trim name "" false if > len name 40 false if contains name "/" false if contains name "\\" false if contains name ".." false if contains name "\n" false if contains name "\t" false true
-agent_profile role provider model = put put put put record _ "role" boxstr role "provider" boxstr provider "model" boxstr model "history" boxstr ""
+agent_profile role provider model = put put put put put put record _ "role" boxstr role "provider" boxstr provider "model" boxstr model "history" boxstr "" "tasks" array _ "next" boxint 0
 agent_new_db name role provider model = put put agent_db _ "agents" put agent_records _ name agent_profile role provider model "selected" boxstr name
 agent_after_create _ name role history provider model page = agent_new_save name role history provider model page
 agent_new_save name role history provider model page = agent_written fswrite agent_file _ encode agent_new_db name role provider model name history provider model page
@@ -79,5 +80,24 @@ agent_store_response transcript provider model page = if == agent_active _ "" lo
 agent_store_selected name transcript provider model page = agent_stored fswrite agent_file _ encode put agent_db _ "agents" put agent_records _ name put field agent_records _ name "history" boxstr transcript transcript provider model page
 agent_stored _ transcript provider model page = loop transcript provider model page
 agent_complete history question response provider model page = agent_store_response append append history "You" question "Ainex" response provider model page
+
+
+# Durable per-agent FIFO queue, deliberately executed only on user request.
+# Queue head moves forward only after a model response succeeds; on failure,
+# the same task remains pending for a later :task-next.
+task_items _ = if hasfield field agent_records _ agent_active _ "tasks" field field agent_records _ agent_active _ "tasks" array _
+task_cursor _ = if hasfield field agent_records _ agent_active _ "next" asint field field agent_records _ agent_active _ "next" 0
+task_add task history provider model page = if == agent_active _ "" loop append history "Queue" "Create or select an agent first." provider model page if == trim task "" loop append history "Queue" "Task must not be empty." provider model page if > len task 2000 loop append history "Queue" "Task exceeds 2000 characters." provider model page task_save task history provider model page
+task_save task history provider model page = task_added fswrite agent_file _ encode put agent_db _ "agents" put agent_records _ agent_active _ put field agent_records _ agent_active _ "tasks" push task_items _ boxstr task task history provider model page
+task_added _ task history provider model page = loop append history "Queue" concat "Queued: " task provider model page
+task_show history provider model page = if == agent_active _ "" loop append history "Queue" "Select an agent first." provider model page loop append history "Queue" concat "Next task index: " concat encode boxint task_cursor _ concat "\nTasks: " encode task_items _ provider model page
+task_next history provider model page = if == agent_active _ "" loop append history "Queue" "Select an agent first." provider model page if >= task_cursor _ size task_items _ loop append history "Queue" "No pending tasks." provider model page task_start astext get task_items _ task_cursor _ history provider model page
+task_start task history provider model page = task_painted guiupdate "Ainex" layout append history "Queue" concat "Running task: " task provider model task history provider model page
+task_painted _ task history provider model page = task_watch spawn "request" request_payload provider model agent_prompt agent_active_role _ task history task provider model page
+task_watch job history task provider model page = if ready job task_finish history task astext wait job provider model page task_poll before guitick 50 "\n" job history task provider model page
+task_poll action job history task provider model page = if == action "quit" "Window closed" task_watch job history task provider model page
+task_finish history task response provider model page = if starts response "Provider error:" agent_store_response append append history "Task" task "Ainex" response provider model page task_finish_success append append history "Task" task "Ainex" response provider model page
+task_finish_success transcript provider model page = task_saved fswrite agent_file _ encode put agent_db _ "agents" put agent_records _ agent_active _ put put field agent_records _ agent_active _ "history" boxstr transcript "next" boxint + task_cursor _ 1 transcript provider model page
+task_saved _ transcript provider model page = loop transcript provider model page
 
 print loop "Ainex ready. Press i and type a message or :help." "opencode" "" ""
