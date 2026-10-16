@@ -1,0 +1,9 @@
+# Native Ain workspace smoke tests; no shell expansion or model credentials.
+listing = fslist "."
+print asbool field listing "ok"
+readme = tryread "README.md"
+print result_valid readme
+args = push push array _ boxstr "Hello %s" boxstr "Ainex"
+ran = processrun "printf" args
+print asbool field ran "ok"
+print astext field field ran "value" "stdout"
