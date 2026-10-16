@@ -1,0 +1,6 @@
+# Integration test: Ain-only GTK4 GUI remains responsive during a background Ain task.
+double x = boxint * asint x 2
+guiupdate "Ainex async GUI smoke" "header\tAsynchronous Ain GUI\nentry\tinput\tType a message\nbutton\tsend\tSend\nvim\t1\n"
+task = spawn "double" boxint 21
+print guitick 50
+print asint wait task
