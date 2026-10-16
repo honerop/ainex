@@ -9,12 +9,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: cachix/install-nix-action@v31
-      - name: Generate reproducible Nix flake lock
+      - name: Verify pinned Nix inputs
         run: |
+          set -eu
+          test -f flake.lock
           nix flake lock
-          echo 'AINEX_FLAKE_LOCK_BEGIN'
-          cat flake.lock
-          echo 'AINEX_FLAKE_LOCK_END'
+          git diff --exit-code -- flake.lock
+          nix flake metadata "github:honerop/ainex/${GITHUB_SHA}"
       - name: Build and test Ainex
         run: nix build . --show-trace --print-build-logs
       - name: Install virtual display
