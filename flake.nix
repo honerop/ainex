@@ -3,7 +3,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     ain = {
-      url = "github:honerop/ain/7670b77401f4b3ee889471f1aafa77ba86b77539";
+      url = "github:honerop/ain/cf38dd3356fd9962830be330df72379c168f73fe";
       flake = false;
     };
   };
@@ -25,7 +25,7 @@
             version = "0.3.0";
             src = self;
             nativeBuildInputs = with pkgs; [ cargo rustc pkg-config makeWrapper curl ];
-            buildInputs = with pkgs; [ gtk4 glib ];
+            buildInputs = with pkgs; [ gtk4 glib sqlite zlib ];
             dontConfigure = true;
             buildPhase = ''
               runHook preBuild
@@ -67,7 +67,7 @@
         let python = pkgs.python3.withPackages (p: [ p.playwright ]);
         in {
           default = pkgs.mkShell {
-            packages = with pkgs; [ rustc cargo pkg-config gtk4 glib curl jq chromium ] ++
+            packages = with pkgs; [ rustc cargo pkg-config gtk4 glib sqlite zlib curl jq chromium ] ++
               [ python ] ++ pkgs.lib.optionals (pkgs ? codex) [ pkgs.codex ];
             shellHook = ''
               export CARGO_TARGET_DIR="$PWD/.ain-target"
