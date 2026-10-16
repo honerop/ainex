@@ -1,0 +1,11 @@
+# Headless smoke test for the local agent profile JSON format.
+profile = put put put put record _ "role" boxstr "Haskell tutor" "provider" boxstr "opencode" "model" boxstr "opencode/mimo-v2.6-flash-free" "history" boxstr "First conversation"
+database = put put record _ "agents" put record _ "Teacher" profile "selected" boxstr "Teacher"
+fswrite "ainex-test-agent-store.json" encode database
+loaded = tryjson result_get tryread "ainex-test-agent-store.json" "{}"
+print asbool field loaded "ok"
+restored = field loaded "value"
+print astext field restored "selected"
+print astext field field field restored "agents" "Teacher" "role"
+print astext field field field restored "agents" "Teacher" "provider"
+print asbool field fsremove "ainex-test-agent-store.json" "ok"
