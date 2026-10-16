@@ -57,9 +57,9 @@ Browser operations are implemented by Ain's general `browser operation argument`
 
 The Ain built-in operation is `chat provider model prompt`, reusable in other Ain programs.
 
-## OpenBot Free via OpenCode
+## OpenCode Free model provider
 
-Select **OpenBot Free** in the Ainex window, or enter `:openbot`. This selects
+Select **OpenCode Free** in the Ainex window, or enter `:opencode`. This selects
 Ain's OpenCode CLI adapter and defaults to
 `opencode/mimo-v2.6-flash-free` when the model field is blank.
 
@@ -77,13 +77,13 @@ in nixpkgs. This is a chat integration, not automatic unrestricted execution.
 
 ## Explicit agent and workspace commands
 
-Ainex adds local desktop features inspired by OpenBot and Grok Bot. Every
+Ainex is developing agent-workspace features inspired by OpenBot and Grok Bot. Every
 filesystem or process action is initiated by a user command and does **not**
 give the model blanket permission to execute commands.
 
 | Command | Meaning |
 | --- | --- |
-| `:openbot` / `:opencode` | Select the free OpenCode model provider |
+| `:opencode` / `:opencode` | Select the free OpenCode model provider |
 | `:files PATH` | List directory entries in sorted order |
 | `:read PATH` | Show an existing UTF-8 file |
 | `:save PATH` | Save the current chat transcript to an explicit path |

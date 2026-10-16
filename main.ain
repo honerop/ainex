@@ -3,7 +3,7 @@
 # The language runtime implements reusable primitives.
 
 label provider model = concat provider concat " / " if == model "" "default" model
-layout history provider model = concat "header\tAinex | " concat label provider model concat "\nlog\t" concat replace history "\n" "  ↵  " "\nentry\tmessage\tMessage or :help\nbutton\tsend\tSend\nbutton\tdeepinfra\tDeepInfra\nbutton\tchatgpt\tChatGPT\nbutton\topenbot\tOpenBot Free\nbutton\tquit\tQuit\nhint\ti insert  Esc normal  j/k scroll  gg/G top/bottom\nvim\t1\n"
+layout history provider model = concat "header\tAinex | " concat label provider model concat "\nlog\t" concat replace history "\n" "  ↵  " "\nentry\tmessage\tMessage or :help\nbutton\tsend\tSend\nbutton\tdeepinfra\tDeepInfra\nbutton\tchatgpt\tChatGPT\nbutton\topencode\tOpenCode Free\nbutton\tquit\tQuit\nhint\ti insert  Esc normal  j/k scroll  gg/G top/bottom\nvim\t1\n"
 append history role message = concat history concat "\n" concat role concat ": " message
 answer history question response provider model page = loop append append history "You" question "Ainex" response provider model page
 # Model generation runs in an Ain background task. GTK stays on the main thread.
@@ -19,11 +19,11 @@ answer_page text history provider model page = if == page "" loop append history
 browser_result result history provider model = loop append history "Browser" result provider model result
 browser_request op arg history provider model = browser_result browser op arg history provider model
 loop history provider model page = dispatch gui "Ainex" layout history provider model history provider model page
-dispatch event history provider model page = if == before event "\n" "quit" "Window closed" if == before event "\n" "chatgpt" loop history "chatgpt" "" page if == before event "\n" "deepinfra" loop history "deepinfra" "" page if == before event "\n" "openbot" loop history "openbot" "" page if == before event "\n" "send" handle after event "\n" history provider model page loop history provider model page
+dispatch event history provider model page = if == before event "\n" "quit" "Window closed" if == before event "\n" "chatgpt" loop history "chatgpt" "" page if == before event "\n" "deepinfra" loop history "deepinfra" "" page if == before event "\n" "opencode" loop history "opencode" "" page if == before event "\n" "send" handle after event "\n" history provider model page loop history provider model page
 handle message history provider model page = if == trim message "" loop history provider model page if starts message ":" cmd1 message history provider model page answer_request message history provider model page
 cmd1 text history provider model page = if == text ":clear" loop "Ready. Type :help for commands." provider model page cmd2 text history provider model page
-cmd2 text history provider model page = if == text ":help" loop append history "Help" ":browse URL  :page  :links  :back  :click CSS  :fill CSS|value  :screenshot name.png  :ask question  :model ID  :deepinfra  :chatgpt  :openbot  :files PATH  :read PATH  :save PATH  :load PATH  :exec JSON  :agent ROLE|TASK  :review PATH  :plan TASK  :cwd  :clear" provider model page cmd3 text history provider model page
-cmd3 text history provider model page = if == text ":chatgpt" loop history "chatgpt" "" page if == text ":deepinfra" loop history "deepinfra" "" page if == text ":openbot" loop history "openbot" "" page cmd4 text history provider model page
+cmd2 text history provider model page = if == text ":help" loop append history "Help" ":browse URL  :page  :links  :back  :click CSS  :fill CSS|value  :screenshot name.png  :ask question  :model ID  :deepinfra  :chatgpt  :opencode  :files PATH  :read PATH  :save PATH  :load PATH  :exec JSON  :agent ROLE|TASK  :review PATH  :plan TASK  :cwd  :clear" provider model page cmd3 text history provider model page
+cmd3 text history provider model page = if == text ":chatgpt" loop history "chatgpt" "" page if == text ":deepinfra" loop history "deepinfra" "" page if == text ":opencode" loop history "opencode" "" page cmd4 text history provider model page
 cmd4 text history provider model page = if starts text ":model " loop history provider after text ":model " page cmd5 text history provider model page
 cmd5 text history provider model page = if starts text ":browse " browser_request "open" after text ":browse " history provider model cmd6 text history provider model page
 cmd6 text history provider model page = if == text ":page" browser_request "read" "" history provider model if == text ":links" browser_request "links" "" history provider model cmd7 text history provider model page
@@ -47,7 +47,7 @@ cmd10 text history provider model page = if starts text ":files " files_result f
 cmd11 text history provider model page = if starts text ":save " save_done fswrite after text ":save " history history provider model page if starts text ":load " load_result tryread after text ":load " history provider model page cmd12 text history provider model page
 cmd12 text history provider model page = if starts text ":exec " execute_json tryjson after text ":exec " history provider model page if starts text ":agent " agent_request after text ":agent " history provider model page cmd13 text history provider model page
 review_result result filename history provider model page = if result_valid result begin_chat filename concat "Review this file for bugs, security problems and maintainability. Suggest specific changes but do not claim to have edited anything.\nFile: " concat filename concat "\nContents:\n" result_get result "" history provider model page loop append history "Error" result_error result provider model page
-cmd13 text history provider model page = if == text ":cwd" cwd_result workingdir _ history provider model page if == text ":opencode" loop history "openbot" "" page cmd14 text history provider model page
+cmd13 text history provider model page = if == text ":cwd" cwd_result workingdir _ history provider model page if == text ":opencode" loop history "opencode" "" page cmd14 text history provider model page
 cmd14 text history provider model page = if starts text ":review " review_result tryread after text ":review " after text ":review " history provider model page if starts text ":plan " begin_chat after text ":plan " concat "Create a careful implementation plan with verification steps, without modifying files. Task:\n" after text ":plan " history provider model page loop append history "Error" "Unknown command. Use :help." provider model page
 
-print loop "Ainex ready. Press i and type a message or :help." "openbot" "" ""
+print loop "Ainex ready. Press i and type a message or :help." "opencode" "" ""
