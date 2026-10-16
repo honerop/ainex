@@ -45,6 +45,12 @@
               "$CARGO_TARGET_DIR/release/ainc" build tests/browser.ain -o browser-test
               "$CARGO_TARGET_DIR/release/ainc" build tests/gui_task.ain -o gui-task-test
               "$CARGO_TARGET_DIR/release/ainc" build tests/workspace.ain -o workspace-test
+              "$CARGO_TARGET_DIR/release/ainc" build tests/agent_store.ain -o agent-store-test
+              ./agent-store-test > /tmp/ainex-agent-store.log
+              grep -x 'true' /tmp/ainex-agent-store.log
+              grep -x 'Teacher' /tmp/ainex-agent-store.log
+              grep -x 'Haskell tutor' /tmp/ainex-agent-store.log
+              grep -x 'opencode' /tmp/ainex-agent-store.log
               ./workspace-test > /tmp/ainex-workspace.log
               grep -x "true" /tmp/ainex-workspace.log
               grep -F "Hello Ainex" /tmp/ainex-workspace.log
