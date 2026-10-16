@@ -42,13 +42,15 @@
               cargo test --offline --manifest-path ain-source/Cargo.toml
               "$CARGO_TARGET_DIR/release/ainc" check main.ain
               "$CARGO_TARGET_DIR/release/ainc" build tests/browser.ain -o browser-test
+              "$CARGO_TARGET_DIR/release/ainc" build tests/gui_task.ain -o gui-task-test
               AIN_BROWSER_PYTHON="${python}/bin/python3" AINEX_CHROMIUM_BROWSER="${pkgs.chromium}/bin/chromium" ./browser-test
               runHook postCheck
             '';
             installPhase = ''
               runHook preInstall
-              mkdir -p "$out/bin"
+              mkdir -p "$out/bin" "$out/libexec/ainex-tests"
               install -m 0755 ainex "$out/bin/ainex"
+              install -m 0755 gui-task-test "$out/libexec/ainex-tests/gui-task"
               wrapProgram "$out/bin/ainex" \
                 --prefix PATH : "${lib.makeBinPath dependencies}" \
                 --set AIN_BROWSER_PYTHON "${python}/bin/python3" \
