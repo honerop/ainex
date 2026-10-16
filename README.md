@@ -59,48 +59,59 @@ The Ain built-in operation is `chat provider model prompt`, reusable in other Ai
 
 ## OpenCode Free model provider
 
-Select **OpenCode Free** in the Ainex window, or enter `:opencode`. This selects
-Ain's OpenCode CLI adapter and defaults to
-`opencode/mimo-v2.6-flash-free` when the model field is blank.
+Select **OpenCode Free** in the GTK4 window, or type `:opencode`. The
+backend is the installed OpenCode CLI using
+`opencode/mimo-v2.6-flash-free` by default. This is a provider option,
+not an OpenBot integration. Free-model availability and limits depend on
+OpenCode's current offering; account access and live responses aren't verified
+in CI.
 
-OpenBot itself is a separate, local-first multi-agent desktop workspace.
-**Ainex does not run or embed the OpenBot desktop application.** It connects
-to the OpenCode free-model CLI, which is also an engine supported by OpenBot.
-The free offering may impose rate limits or change its model catalog. Live
-provider access requires an installed and functioning OpenCode CLI; provider
-availability is not guaranteed by offline CI.
+The native Ain runtime invokes the OpenCode CLI directly using argument arrays
+and parses JSONL text events. Ainex includes the CLI in its Nix closure when
+available in the selected nixpkgs revision.
 
-Ain's native runtime runs the OpenCode CLI as an explicit argument-vector
-process, defaults to the plan agent, reads JSONL `text` events, and produces
-a plain assistant response. The OpenCode binary is packaged where available
-in nixpkgs. This is a chat integration, not automatic unrestricted execution.
+## Agent-workspace features inspired by OpenBot and Grok Bot
 
-## Explicit agent and workspace commands
+The design references are
+[OpenBot](https://github.com/nightly-labs/openbot) and
+[Grok Bot](https://github.com/grok-bot-app/grok-bot).
+Both are agent workspaces, not the model used by OpenCode Free.
 
-Ainex is developing agent-workspace features inspired by OpenBot and Grok Bot. Every
-filesystem or process action is initiated by a user command and does **not**
-give the model blanket permission to execute commands.
+Ainex now supports **named, persistent local agent profiles**. Each agent
+keeps its instructions, selected provider, model, and chat history. Switching
+agents reloads that profile, and finished model replies update its history.
+Profiles live in `~/.local/share/ainex/agents.json`; they remain on the
+local computer, not in Ainex's repository or a hosted Ainex account.
 
 | Command | Meaning |
 | --- | --- |
-| `:opencode` / `:opencode` | Select the free OpenCode model provider |
-| `:files PATH` | List directory entries in sorted order |
-| `:read PATH` | Show an existing UTF-8 file |
-| `:save PATH` | Save the current chat transcript to an explicit path |
-| `:load PATH` | Restore a text transcript from a file |
-| `:cwd` | Show the process working directory |
-| `:exec {"program":"git","args":["status","--short"]}` | Run a user-supplied program without a shell, returning exit code and bounded stdout/stderr |
-| `:agent ROLE|TASK` | Give a one-shot role-specific task to the selected provider |
+| `:agent-new NAME|ROLE` | Create/select an agent with role instructions and the current provider/model |
+| `:agents` | List agent names |
+| `:agent-use NAME` | Switch to the agent's stored provider, model and conversation |
+| `:agent-info` | Display the selected agent's saved profile |
+| `:agent ROLE|TASK` | One-off specialized role prompt, without creating a profile |
+| `:opencode` | Switch to the OpenCode Free backend |
+| `:files PATH` | List directory entries |
+| `:read PATH` | Read a UTF-8 file |
+| `:save PATH` / `:load PATH` | Save or restore a plain-text transcript |
+| `:cwd` | Show the working directory |
+| `:exec {"program":"git","args":["status","--short"]}` | Run an explicitly requested command with bounded output, without a shell |
+| `:review PATH` | Ask the selected model to review a file |
+| `:plan TASK` | Ask the selected model for a plan without executing it |
 
-The saved session is a text transcript, not a native OpenCode/Codex session.
-It is not automatically synchronized or encrypted. A subprocess runs with
-your normal OS account permissions; **only run commands you trust**. Ainex
-does not automatically approve model-proposed changes or execute model text.
+All local tool invocations are initiated by explicit user commands. The model
+does not automatically approve, plan-and-execute, or run arbitrary returned
+commands. Agent names cannot contain path separators or parent-directory
+components. The agent database is **plaintext and not encrypted**. Running
+Ainex grants its process normal OS file access; use OS sandboxing and restrict
+access to sensitive directories if you run untrusted tasks.
 
-These commands are a first step toward richer agent workspaces. Independent
-persistent agent identities, multi-agent delegation, durable task queues,
-embedded collaborative channels, remote phone access and per-tool consent
-prompts are still unfinished.
+**Not implemented yet:** persistent autonomous background task queues,
+automatic multi-agent delegation, bot-to-bot messaging, remote cloud computers,
+learn-by-demonstration routines, per-tool confirmation dialogs, durable browser
+sessions, and task execution after the app closes. Ainex is not at full
+OpenBot/Grok Bot feature parity. Agent workspaces currently share the process's
+filesystem access; there is no per-agent OS sandbox.
 
 ## Vim-style navigation
 
@@ -111,7 +122,7 @@ prompts are still unfinished.
 - Only Linux/NixOS GTK4 is supported.
 - The native GTK4 GUI continues processing input during model generation through Ain background tasks; the composer is still single-line.
 - Browser commands remain synchronous and can temporarily block the window.
-- Conversation history remains in memory unless you explicitly save it with `:save PATH`; use `:load PATH` to restore a text transcript.
+- Named agents persist their histories locally in `agents.json`; conversations without a named agent remain in memory unless saved explicitly.
 - Browser automation is explicit, not model-directed autonomous tool use.
 - Provider logins and live model responses have not been tested with personal credentials.
 - GUI, browser and chat builtins are currently supported through Ain's Rust code-generation backend, not its LLVM or self-hosted C backend. **The Ainex application itself does not contain Rust.**
