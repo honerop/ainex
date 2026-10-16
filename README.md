@@ -66,7 +66,7 @@ Ain's `run` primitive is generic, rather than teaching the compiler about GTK4, 
 ## Current limitations
 
 - Native GTK4 desktop on Linux/NixOS only
-- Plain-text replies, single-line composer, no persistent chat history
+- Plain-text replies and a single-line composer; the last twelve exchanges are remembered in RAM, not saved to disk
 - Browser sessions are temporary and actions require explicit user input
 - No autonomous agent tool loop yet
 - CI verifies compiler, packaging, and local tests, but does not authenticate with live model providers
