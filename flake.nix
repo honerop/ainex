@@ -3,7 +3,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     ain = {
-      url = "github:honerop/ain/feature/native-gui-ai-runtime";
+      url = "github:honerop/ain/ddf214b434251eec91517e16f17f6daa50c696cf";
       flake = false;
     };
   };
