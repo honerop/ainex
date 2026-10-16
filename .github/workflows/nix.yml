@@ -13,6 +13,13 @@ jobs:
         run: nix build . --show-trace --print-build-logs
       - name: Install virtual display
         run: sudo apt-get update && sudo apt-get install -y xvfb dbus-x11
+      - name: Smoke-test asynchronous Ain GUI
+        run: |
+          set -eu
+          output=$(timeout 15s xvfb-run -a dbus-run-session ./result/libexec/ainex-tests/gui-task)
+          printf '%s\n' "$output"
+          printf '%s\n' "$output" | grep -x 'tick'
+          printf '%s\n' "$output" | grep -x '42'
       - name: Smoke-launch native GTK4 window
         run: |
           set +e

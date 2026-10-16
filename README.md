@@ -64,10 +64,20 @@ The Ain built-in operation is `chat provider model prompt`, reusable in other Ai
 ## Current limitations
 
 - Only Linux/NixOS GTK4 is supported.
-- The UI is synchronous and currently single-line; API requests temporarily block its event loop.
+- The native GTK4 GUI continues processing input during model generation through Ain background tasks; the composer is still single-line.
+- Browser commands remain synchronous and can temporarily block the window.
 - Conversation history exists only while the process runs and is not persisted.
 - Browser automation is explicit, not model-directed autonomous tool use.
 - Provider logins and live model responses have not been tested with personal credentials.
 - GUI, browser and chat builtins are currently supported through Ain's Rust code-generation backend, not its LLVM or self-hosted C backend. **The Ainex application itself does not contain Rust.**
 
 MIT license.
+
+## Responsive AI generation
+
+Ainex launches model requests using Ain's `spawn` builtin and a named Ain
+function returning `Data`. While the request executes, `guitick 50` pumps the
+native GTK4 event loop without destroying the input widget, and `guiupdate`
+repaints the result when it arrives. No Rust or Python application source is
+required. The browser integration is still synchronous; fully autonomous
+agent actions remain unimplemented.
