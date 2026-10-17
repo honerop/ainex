@@ -3,17 +3,17 @@
     "ain": {
       "flake": false,
       "locked": {
-        "lastModified": 1792170999,
-        "narHash": "sha256-jksHSpXBEjqHIHSqn391apGnvKNg9qfXWmNf9O+jfz8=",
+        "lastModified": 1792219386,
+        "narHash": "sha256-nOmlGuiPtHgw32w1/7VBDmcKiPANqjtii3I8dIO4bBI=",
         "owner": "honerop",
         "repo": "ain",
-        "rev": "93f16cc97a947a851abf9503c71839ec039127f7",
+        "rev": "37915e24c7e6a6633ed4887f6202df3c06aea10d",
         "type": "github"
       },
       "original": {
         "owner": "honerop",
         "repo": "ain",
-        "rev": "93f16cc97a947a851abf9503c71839ec039127f7",
+        "rev": "37915e24c7e6a6633ed4887f6202df3c06aea10d",
         "type": "github"
       }
     },
@@ -43,4 +43,3 @@
   "root": "root",
   "version": 7
 }
-
