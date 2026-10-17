@@ -71,7 +71,27 @@ The native window opens in **insert mode** with the composer focused. Type strai
 | `:screenshot name.png` | Save a screenshot under your XDG cache directory |
 | `:ask QUESTION` | Ask the selected model about the current page |
 
-Browser operations are implemented by Ain's general `browser operation argument` builtin. Each action must be requested by the user. Ainex does **not** allow the model to autonomously browse, log in or submit forms.
+Browser operations are implemented by Ain's general `browser operation argument` builtin. Manual commands still work as before. **Named agents can now browse autonomously** within a strict whitelist, and `:web TASK` starts a browser-enabled agent without creating a profile. Browser inspection exposes visible links, fields, and buttons as numbered `@N` handles so agents can click or fill them without guessing CSS selectors.
+
+### Autonomous browser agents
+
+Select or create a named agent, then write an ordinary request:
+
+```text
+Find running shoes under $100 on Amazon. Compare three choices and leave checkout to me.
+```
+
+Or, without a named agent:
+
+```text
+:web Open https://www.amazon.com, search for USB-C hubs, and compare the best options.
+```
+
+The agent makes one model decision at a time (JSON action), executes an allowed Chromium action, reads the result, and repeats for **at most 20 actions**. It can open URLs, inspect visible controls, read pages, follow safe clicks, fill ordinary search/text fields, use back navigation, and report findings. `:task-next` uses the same browser agent loop for a named agent's next queued task, and only advances the queue when the model finishes with a `done` action.
+
+**Approval boundary:** autonomous clicks are blocked for likely purchases, checkout/payment, sensitive fields, and non-GET form submissions. Browser shopping is meant for researching, comparing, and navigating toward a cart. To purchase, log in, enter card data, or submit an order, use the browser directly. A failed action stops the run, rather than letting the model invent a successful order. The filters are defense-in-depth, not a proof that arbitrary websites cannot implement misleading buttons or side effects.
+
+Browser content is **untrusted** and agents are explicitly told not to obey instructions from webpages. The browser uses a separate Playwright Chromium context, not a personal Firefox/Chrome profile. It does not automatically share your site logins. This is interactive while Ainex remains open, not an unattended hosted browser or a background worker.
 
 ## Model providers
 
@@ -115,7 +135,7 @@ local computer, not in Ainex's repository or a hosted Ainex account.
 | `:agent-info` | Display the selected agent's saved profile |
 | `:task-add TASK` | Enqueue an instruction for the currently selected agent |
 | `:tasks` | Show the agent's saved FIFO queue and next-task position |
-| `:task-next` | Manually start the next pending task; advance only after a successful model reply |
+| `:task-next` | Manually start the next queued browser-enabled agent task; advance only after a completed run |
 | `:agent ROLE|TASK` | One-off specialized role prompt, without creating a profile |
 | `:opencode` | Switch to the OpenCode Free backend |
 | `:files PATH` | List directory entries |
@@ -126,14 +146,12 @@ local computer, not in Ainex's repository or a hosted Ainex account.
 | `:review PATH` | Ask the selected model to review a file |
 | `:plan TASK` | Ask the selected model for a plan without executing it |
 
-All local tool invocations are initiated by explicit user commands. The model
-does not automatically approve, plan-and-execute, or run arbitrary returned
-commands. Agent names cannot contain path separators or parent-directory
+File reads, writes, and local process commands require explicit user commands. Browser-capable agents can plan and execute only the limited Chromium tools described above. The model cannot automatically run shell commands or read arbitrary files through the agent tool protocol. Agent names cannot contain path separators or parent-directory
 components. The agent database is **plaintext and not encrypted**. Running
 Ainex grants its process normal OS file access; use OS sandboxing and restrict
 access to sensitive directories if you run untrusted tasks.
 
-**Not implemented yet:** unattended/autonomous background task execution,
+**Not implemented yet:** unattended/background task execution,
 automatic multi-agent delegation, bot-to-bot messaging, remote cloud computers,
 learn-by-demonstration routines, per-tool confirmation dialogs, durable browser
 sessions, and task execution after the app closes. Ainex is not at full
@@ -144,11 +162,10 @@ filesystem access; there is no per-agent OS sandbox.
 ### Queue execution semantics
 
 The `:task-add` queue is stored in the selected agent's JSON profile under
-`tasks`, with a persisted `next` index. `:task-next` runs exactly one
-queued task with the agent's saved instructions/provider. If the provider
-returns an error, the index is not advanced, so the next manual attempt
-retries the same task. A successful model reply advances the cursor and
-saves the conversation.
+`tasks`, with a persisted `next` index. `:task-next` runs one
+queued task through the bounded browser agent loop. Provider errors, blocked actions,
+and requests for manual input do not advance the cursor. Only an explicit
+`done` response from the model advances the queue and saves the conversation.
 
 This is **local, manually driven FIFO task execution**, not an always-on
 worker. Nothing continues after the Ainex process exits. The queue stores
@@ -169,7 +186,7 @@ Use `:model ID` for custom model identifiers; the provider drop-down chooses a b
 - The native GTK4 GUI continues processing input during model generation through Ain background tasks; the composer is still single-line.
 - Browser commands remain synchronous and can temporarily block the window.
 - Named agents persist their histories locally in `agents.json`; conversations without a named agent remain in memory unless saved explicitly.
-- Browser automation is explicit, not model-directed autonomous tool use.
+- Browser agents can run up to 20 bounded model-directed actions, but not purchases or unattended background runs.
 - Provider logins and live model responses have not been tested with personal credentials.
 - GUI, browser and chat builtins are currently supported through Ain's Rust code-generation backend, not its LLVM or self-hosted C backend. **The Ainex application itself does not contain Rust.**
 
@@ -181,5 +198,6 @@ Ainex launches model requests using Ain's `spawn` builtin and a named Ain
 function returning `Data`. While the request executes, `guitick 50` pumps the
 native GTK4 event loop without destroying the input widget, and `guiupdate`
 repaints the result when it arrives. No Rust or Python application source is
-required. The browser integration is still synchronous; fully autonomous
-agent actions remain unimplemented.
+required. Browser actions remain synchronous and can briefly block the GTK window.
+Agent model calls run asynchronously; browser actions are executed only on
+the app thread with a bounded tool whitelist.
