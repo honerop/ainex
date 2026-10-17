@@ -159,7 +159,9 @@ jobs, timers, inter-agent messages, delivery schedules or audit logs.
 
 Ainex starts in insert mode. In that mode **all characters**, including `i`, `j`, `k`, `g`, `G` and `:`, are ordinary input. `Esc` switches to normal mode; `i` or clicking the composer enters insert mode again. Only in normal mode do `j`/`k` scroll, `gg`/`G` jump to the ends, and `:` start a command. `Enter` sends a message.
 
-The GTK4 interface now uses an optional cyan theme, a separate transcript panel, a large composer and send button, a provider switcher, and direct **Agents**, **Task queue**, and **Clear** controls. The app remains written in Ain; the shared GTK renderer lives in the Ain runtime.
+The GTK4 interface uses a dark cyan workspace with a separate transcript panel, composer, send button, and a compact top toolbar. The toolbar has **native GTK4 drop-down selects** for the model provider (OpenCode Free, ChatGPT, DeepInfra) and the active saved agent, plus direct **Manage agents** and **Task queue** controls. The provider and agent menus send stable selection values to Ain; selecting a provider updates that agent's saved provider and resets its model override. Selecting **No agent** returns to the unsaved general workspace. **Clear conversation** and **Exit** remain below the composer. The app remains written in Ain; the reusable `select` control and toolbar rendering live in the Ain runtime.
+
+Use `:model ID` for custom model identifiers; the provider drop-down chooses a backend, not a fixed list of every model that backend might offer. A drop-down has normal GTK keyboard focus and does not trigger Vim composer shortcuts.
 
 ## Current limitations
 
