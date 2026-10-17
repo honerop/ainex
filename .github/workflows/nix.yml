@@ -14,6 +14,7 @@ jobs:
           set -eu
           test -f flake.lock
           nix flake lock
+          git diff -- flake.lock
           git diff --exit-code -- flake.lock
           nix flake metadata "github:honerop/ainex/${GITHUB_SHA}"
       - name: Build and test Ainex
