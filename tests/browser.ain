@@ -1,1 +1,2 @@
 print browser "selftest" ""
+print browser "agent-selftest" ""
