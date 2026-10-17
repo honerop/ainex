@@ -41,7 +41,9 @@ nix develop
 ainc run main.ain
 ```
 
-## Redesigned GTK interface
+## Responsive native GTK interface
+
+The window now uses Ain's nested panel, row and wrapping grid layout primitives, with GTK CSS classes for presentation. The provider/agent selectors adapt to narrower windows and the composer places Send beside the entry. The transcript preserves its position on redraw and follows newly sent messages instead of jumping to the beginning.
 
 The conversation is no longer a single unstructured log. Ain's reusable native GUI renderer now supports a `conversation` container and individually styled `message<TAB>role<TAB>text` cards. User messages, agent responses, system notes, and **errors** render in distinct GTK panels. The cyan design uses responsive button rows and a dedicated message composer, all without Electron or web views.
 
@@ -176,13 +178,13 @@ jobs, timers, inter-agent messages, delivery schedules or audit logs.
 
 Ainex starts in insert mode. In that mode **all characters**, including `i`, `j`, `k`, `g`, `G` and `:`, are ordinary input. `Esc` switches to normal mode; `i` or clicking the composer enters insert mode again. Only in normal mode do `j`/`k` scroll, `gg`/`G` jump to the ends, and `:` start a command. `Enter` sends a message.
 
-The GTK4 interface uses a dark cyan workspace with a separate transcript panel, composer, send button, and a compact top toolbar. The toolbar has **native GTK4 drop-down selects** for the model provider (OpenCode Free, ChatGPT, DeepInfra) and the active saved agent, plus direct **Manage agents** and **Task queue** controls. The provider and agent menus send stable selection values to Ain; selecting a provider updates that agent's saved provider and resets its model override. Selecting **No agent** returns to the unsaved general workspace. **Clear conversation** and **Exit** remain below the composer. The app remains written in Ain; the reusable `select` control and toolbar rendering live in the Ain runtime.
+The GTK4 interface uses a dark cyan workspace with separate transcript and composer panels, a side-by-side input/send row, and a responsive controls grid. The toolbar has **native GTK4 drop-down selects** for the model provider (OpenCode Free, ChatGPT, DeepInfra) and the active saved agent, plus direct **Manage agents** and **Task queue** controls. The provider and agent menus send stable selection values to Ain; selecting a provider updates that agent's saved provider and resets its model override. Selecting **No agent** returns to the unsaved general workspace. **Clear conversation** and **Exit** remain below the composer. The app remains written in Ain; the reusable `select` control and toolbar rendering live in the Ain runtime.
 
 Use `:model ID` for custom model identifiers; the provider drop-down chooses a backend, not a fixed list of every model that backend might offer. A drop-down has normal GTK keyboard focus and does not trigger Vim composer shortcuts.
 
 ## Current limitations
 
-- Only Linux/NixOS GTK4 is supported.
+- GTK4 is portable to Linux, macOS and Windows, but this repository's Nix flake and dependency wrappers currently target Linux only. Cross-platform app packaging is not yet provided.
 - The native GTK4 GUI continues processing input during model generation through Ain background tasks; the composer is still single-line.
 - Browser commands remain synchronous and can temporarily block the window.
 - Named agents persist their histories locally in `agents.json`; conversations without a named agent remain in memory unless saved explicitly.
@@ -201,3 +203,7 @@ repaints the result when it arrives. No Rust or Python application source is
 required. Browser actions remain synchronous and can briefly block the GTK window.
 Agent model calls run asynchronously; browser actions are executed only on
 the app thread with a bounded tool whitelist.
+
+## UI engine and portability
+
+Ainex itself is written in Ain. UI container layout and scroll behavior belong to [Ain's native GUI renderer](https://github.com/honerop/ain/blob/main/docs/gui.md), not application-specific GTK code. The flake pins a specific Ain commit with the new layout runtime. GTK CSS offers native styling but is not a full browser CSS engine. Non-Nix builds on macOS/Windows require a working GTK4 toolchain and additional runtime packaging, as documented in Ain.
