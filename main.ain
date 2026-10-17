@@ -3,8 +3,8 @@
 # The language runtime implements reusable primitives.
 
 label provider model = concat if == agent_active _ "" "General assistant" agent_active _ concat "  /  " concat provider concat "  /  " if == model "" "default model" model
-agent_option acc name = if contains name "|" acc if contains name "=" acc concat acc concat "|" concat name concat "=" name
-agent_options _ = listfold "agent_option" "No agent=__none" keys agent_records _
+agent_option acc name = if contains astext name "|" acc if contains astext name "=" acc boxstr concat astext acc concat "|" concat astext name concat "=" astext name
+agent_options _ = astext fold "agent_option" boxstr "No agent=__none" keys agent_records _
 agent_selected _ = if == agent_active _ "" "__none" agent_active _
 layout history provider model = concat "theme\tcyan\nheader\tAinex\nhint\tAGENT WORKSPACE   /   " concat label provider model concat "\ntoolbar\t\nselect\tprovider\tMODEL PROVIDER\t" concat provider concat "\tOpenCode Free=opencode|ChatGPT=chatgpt|DeepInfra=deepinfra\nselect\tagent\tACTIVE AGENT\t" concat agent_selected _ concat "\t" concat agent_options _ concat "\nbutton\tagents\tManage agents\nbutton\ttasks\tTask queue\nendtoolbar\t\nhint\tCONVERSATION\nconversation\t\n" concat render_history history "\nhint\tMESSAGE   ·   Enter to send   ·   :help for commands\nentry\tmessage\tAsk Ainex, or type :help for commands...\naction\tsend\tSend message   ↵\nhint\tVim: Esc normal  ·  i insert  ·  j/k scroll  ·  gg/G ends\nbutton\tclear\tClear conversation\nbutton\tquit\tExit\nvim\t1\n"
 bubble role body = concat "message\t" concat role concat "\t" replace replace body "\t" "    " "\n" "\\n"
