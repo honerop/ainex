@@ -2,12 +2,12 @@
   description = "Ainex: native GTK4 AI assistant with isolated Chromium browser tools";
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    ain = {
-      url = "github:honerop/ain/a6b798f05c325e86e51fa0497874eb324dc60972";
+    babel = {
+      url = "github:honerop/babel/063dca2abb02a480019ee820f82359fa20b574a3";
       flake = false;
     };
   };
-  outputs = { self, nixpkgs, ain }:
+  outputs = { self, nixpkgs, babel }:
     let
       systems = [ "x86_64-linux" "aarch64-linux" ];
       forAllSystems = f: nixpkgs.lib.genAttrs systems
@@ -30,20 +30,18 @@
             dontConfigure = true;
             buildPhase = ''
               runHook preBuild
-              cp -R ${ain} ain-source
-              chmod -R u+w ain-source
-              export CARGO_TARGET_DIR="$PWD/ain-target"
-              cargo build --offline --release --manifest-path ain-source/Cargo.toml
-              "$CARGO_TARGET_DIR/release/ainc" build main.ain -o ainex
-              "$CARGO_TARGET_DIR/release/ainc" build cli.ain -o ainex-cli
+              export CARGO_MANIFEST_DIR=${babel}
+              rustc --edition=2021 --crate-name babel_compiler --crate-type rlib -O ${babel}/src/lib.rs -o libbabel_compiler.rlib
+              rustc --edition=2021 -O ${babel}/src/main.rs --extern babel_compiler=libbabel_compiler.rlib -L dependency=. -o babelc
+              ./babelc build main.babel -o ainex
+              ./babelc build cli.babel -o ainex-cli
               runHook postBuild
             '';
             doCheck = true;
             checkPhase = ''
               runHook preCheck
-              cargo test --offline --manifest-path ain-source/Cargo.toml
-              "$CARGO_TARGET_DIR/release/ainc" check main.ain
-              "$CARGO_TARGET_DIR/release/ainc" check cli.ain
+              ./babelc check main.babel
+              ./babelc check cli.babel
               ./ainex-cli --help > /tmp/ainex-cli-help.log
               grep -F "ainex-cli --interactive" /tmp/ainex-cli-help.log
               cat > opencode-mock <<'EOF'
@@ -55,12 +53,12 @@
               grep -F "CLI smoke reply" /tmp/ainex-cli-reply.log
               printf 'hello\n/quit\n' | AIN_OPENCODE_BIN="$PWD/opencode-mock" ./ainex-cli --interactive > /tmp/ainex-cli-session.log
               grep -F "CLI smoke reply" /tmp/ainex-cli-session.log
-              "$CARGO_TARGET_DIR/release/ainc" build tests/browser.ain -o browser-test
-              "$CARGO_TARGET_DIR/release/ainc" build tests/gui_task.ain -o gui-task-test
-              "$CARGO_TARGET_DIR/release/ainc" build tests/gui_keys.ain -o gui-keys-test
-              "$CARGO_TARGET_DIR/release/ainc" build tests/workspace.ain -o workspace-test
-              "$CARGO_TARGET_DIR/release/ainc" build tests/agent_store.ain -o agent-store-test
-              "$CARGO_TARGET_DIR/release/ainc" build tests/task_queue.ain -o task-queue-test
+              ./babelc build tests/browser.babel -o browser-test
+              ./babelc build tests/gui_task.babel -o gui-task-test
+              ./babelc build tests/gui_keys.babel -o gui-keys-test
+              ./babelc build tests/workspace.babel -o workspace-test
+              ./babelc build tests/agent_store.babel -o agent-store-test
+              ./babelc build tests/task_queue.babel -o task-queue-test
               ./task-queue-test > /tmp/ainex-task-queue.log
               grep -x '2' /tmp/ainex-task-queue.log
               grep -x 'Explain monads' /tmp/ainex-task-queue.log
@@ -115,11 +113,11 @@
               [ python ] ++ pkgs.lib.optionals (pkgs ? codex) [ pkgs.codex ]
               ++ pkgs.lib.optionals (pkgs ? opencode) [ pkgs.opencode ];
             shellHook = ''
-              export CARGO_TARGET_DIR="$PWD/.ain-target"
+              export CARGO_TARGET_DIR="$PWD/.babel-target"
               export AIN_BROWSER_PYTHON="${python}/bin/python3"
               export AINEX_CHROMIUM_BROWSER="${pkgs.chromium}/bin/chromium"
-              ainc() { cargo run --quiet --manifest-path "${ain}/Cargo.toml" -- "$@"; }
-              export -f ainc
+              babelc() { cargo run --quiet --manifest-path "${babel}/Cargo.toml" -- "$@"; }
+              export -f babelc
             '';
           };
         });
