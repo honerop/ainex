@@ -49,9 +49,9 @@
               printf '%s\n' '{"type":"text","part":{"type":"text","text":"CLI smoke reply"}}'
               EOF
               chmod +x opencode-mock
-              AIN_OPENCODE_BIN="$PWD/opencode-mock" ./ainex-cli -p "test" > /tmp/ainex-cli-reply.log
+              BABEL_OPENCODE_BIN="$PWD/opencode-mock" ./ainex-cli -p "test" > /tmp/ainex-cli-reply.log
               grep -F "CLI smoke reply" /tmp/ainex-cli-reply.log
-              printf 'hello\n/quit\n' | AIN_OPENCODE_BIN="$PWD/opencode-mock" ./ainex-cli --interactive > /tmp/ainex-cli-session.log
+              printf 'hello\n/quit\n' | BABEL_OPENCODE_BIN="$PWD/opencode-mock" ./ainex-cli --interactive > /tmp/ainex-cli-session.log
               grep -F "CLI smoke reply" /tmp/ainex-cli-session.log
               ./babelc build tests/browser.babel -o browser-test
               ./babelc build tests/gui_task.babel -o gui-task-test
@@ -72,7 +72,7 @@
               ./workspace-test > /tmp/ainex-workspace.log
               grep -x "true" /tmp/ainex-workspace.log
               grep -F "Hello Ainex" /tmp/ainex-workspace.log
-              AIN_BROWSER_PYTHON="${python}/bin/python3" AINEX_CHROMIUM_BROWSER="${pkgs.chromium}/bin/chromium" ./browser-test
+              BABEL_BROWSER_PYTHON="${python}/bin/python3" AINEX_CHROMIUM_BROWSER="${pkgs.chromium}/bin/chromium" ./browser-test
               runHook postCheck
             '';
             installPhase = ''
@@ -86,7 +86,7 @@
                 --prefix PATH : "${lib.makeBinPath dependencies}"
               wrapProgram "$out/bin/ainex" \
                 --prefix PATH : "${lib.makeBinPath dependencies}" \
-                --set AIN_BROWSER_PYTHON "${python}/bin/python3" \
+                --set BABEL_BROWSER_PYTHON "${python}/bin/python3" \
                 --set AINEX_CHROMIUM_BROWSER "${pkgs.chromium}/bin/chromium"
               runHook postInstall
             '';
@@ -114,7 +114,7 @@
               ++ pkgs.lib.optionals (pkgs ? opencode) [ pkgs.opencode ];
             shellHook = ''
               export CARGO_TARGET_DIR="$PWD/.babel-target"
-              export AIN_BROWSER_PYTHON="${python}/bin/python3"
+              export BABEL_BROWSER_PYTHON="${python}/bin/python3"
               export AINEX_CHROMIUM_BROWSER="${pkgs.chromium}/bin/chromium"
               babelc() { cargo run --quiet --manifest-path "${babel}/Cargo.toml" -- "$@"; }
               export -f babelc
