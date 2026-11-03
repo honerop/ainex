@@ -17,7 +17,7 @@ jobs:
           git diff -- flake.lock
           git diff --exit-code -- flake.lock
           nix flake metadata "github:honerop/ainex/${GITHUB_SHA}"
-      - name: Build and test Ainex
+      - name: Build and test Babel-native Ainex
         run: nix build . --show-trace --print-build-logs
       - name: Install virtual display
         run: sudo apt-get update && sudo apt-get install -y xvfb dbus-x11 xdotool
