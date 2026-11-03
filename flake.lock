@@ -1,22 +1,5 @@
 {
   "nodes": {
-    "ain": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1792247702,
-        "narHash": "sha256-+vjax7EYCv9Da0/M/jDsUg0jwNNE3DpNsj4EhPdugkI=",
-        "owner": "honerop",
-        "repo": "ain",
-        "rev": "a6b798f05c325e86e51fa0497874eb324dc60972",
-        "type": "github"
-      },
-      "original": {
-        "owner": "honerop",
-        "repo": "ain",
-        "rev": "a6b798f05c325e86e51fa0497874eb324dc60972",
-        "type": "github"
-      }
-    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1791956154,
@@ -35,8 +18,25 @@
     },
     "root": {
       "inputs": {
-        "ain": "ain",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "babel": "babel"
+      }
+    },
+    "babel": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1793703299,
+        "narHash": "sha256-kXlk6AAslJf39m7CR7Xc4B1Xtxtb6bv6DAOYjbRTXCU=",
+        "owner": "honerop",
+        "repo": "babel",
+        "rev": "063dca2abb02a480019ee820f82359fa20b574a3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "honerop",
+        "repo": "babel",
+        "rev": "063dca2abb02a480019ee820f82359fa20b574a3",
+        "type": "github"
       }
     }
   },
