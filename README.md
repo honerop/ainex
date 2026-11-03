@@ -2,7 +2,7 @@
 
 Ainex is a **general-purpose native GTK4 desktop and terminal assistant written entirely in [Babel](https://github.com/honerop/babel)**. Every part of the application behavior lives in [`main.babel`](main.babel): native GUI layout, navigation, chat/provider choices, and browser commands.
 
-**No Rust, Python, JavaScript or other application source code exists in this repository.** Babel's compiler and reusable standard runtime are responsible for translating Ain to native code and providing GTK4 widgets, HTTP/AI support and isolated Playwright Chromium automation. Nix is only used for packaging and dependencies.
+**No Rust, Python, JavaScript or other application source code exists in this repository.** Babel's compiler and reusable standard runtime are responsible for translating Babel to native code and providing GTK4 widgets, HTTP/AI support and isolated Playwright Chromium automation. Nix is only used for packaging and dependencies.
 
 Babel is a general-purpose programming language designed **exclusively for AI-generated code**, with a deliberately extensive built-in library.
 
@@ -49,7 +49,7 @@ The conversation is no longer a single unstructured log. Babel's reusable native
 
 ## Native GUI in Babel
 
-The graphical interface is built using Babel's general `gui title layout` operation, which constructs a real GTK4 window and returns keyboard/button events to the Ain program. Ainex opts into the runtime's cyan theme using `theme\tcyan` in the layout.
+The graphical interface is built using Babel's general `gui title layout` operation, which constructs a real GTK4 window and returns keyboard/button events to the Babel program. Ainex opts into the runtime's cyan theme using `theme\tcyan` in the layout.
 
 ```text
 layout = "header\\tAinex\\nentry\\tmessage\\tMessage\\nbutton\\tsend\\tSend\\nvim\\t1\\n"
@@ -99,9 +99,9 @@ Browser content is **untrusted** and agents are explicitly told not to obey inst
 
 **ChatGPT Plus:** Install the official Codex CLI and authenticate with `codex login`. Select **ChatGPT** in the GTK4 window (or enter `:chatgpt`). This uses Codex's supported ChatGPT authentication rather than unofficial API access. ChatGPT Plus does not include an OpenAI API key.
 
-**DeepInfra:** Export `DEEPINFRA_API_KEY`, then select **DeepInfra** or type `:deepinfra`. By default Ain uses `zai-org/GLM-5.3-Flash`; use `:model IDENTIFIER` to change it. Tokens stay outside the repository.
+**DeepInfra:** Export `DEEPINFRA_API_KEY`, then select **DeepInfra** or type `:deepinfra`. By default Babel uses `zai-org/GLM-5.3-Flash`; use `:model IDENTIFIER` to change it. Tokens stay outside the repository.
 
-The Ain built-in operation is `chat provider model prompt`, reusable in other Ain programs.
+The Babel builtin operation is `chat provider model prompt`, reusable in other Babel programs.
 
 ## OpenCode Free model provider
 
@@ -178,14 +178,14 @@ jobs, timers, inter-agent messages, delivery schedules or audit logs.
 
 Ainex starts in insert mode. In that mode **all characters**, including `i`, `j`, `k`, `g`, `G` and `:`, are ordinary input. `Esc` switches to normal mode; `i` or clicking the composer enters insert mode again. Only in normal mode do `j`/`k` scroll, `gg`/`G` jump to the ends, and `:` start a command. `Enter` sends a message.
 
-The GTK4 interface uses a dark cyan workspace with separate transcript and composer panels, a side-by-side input/send row, and a responsive controls grid. The toolbar has **native GTK4 drop-down selects** for the model provider (OpenCode Free, ChatGPT, DeepInfra) and the active saved agent, plus direct **Manage agents** and **Task queue** controls. The provider and agent menus send stable selection values to Ain; selecting a provider updates that agent's saved provider and resets its model override. Selecting **No agent** returns to the unsaved general workspace. **Clear conversation** and **Exit** remain below the composer. The app remains written in Babel; the reusable `select` control and toolbar rendering live in the Babel runtime.
+The GTK4 interface uses a dark cyan workspace with separate transcript and composer panels, a side-by-side input/send row, and a responsive controls grid. The toolbar has **native GTK4 drop-down selects** for the model provider (OpenCode Free, ChatGPT, DeepInfra) and the active saved agent, plus direct **Manage agents** and **Task queue** controls. The provider and agent menus send stable selection values to Babel; selecting a provider updates that agent's saved provider and resets its model override. Selecting **No agent** returns to the unsaved general workspace. **Clear conversation** and **Exit** remain below the composer. The app remains written in Babel; the reusable `select` control and toolbar rendering live in the Babel runtime.
 
 Use `:model ID` for custom model identifiers; the provider drop-down chooses a backend, not a fixed list of every model that backend might offer. A drop-down has normal GTK keyboard focus and does not trigger Vim composer shortcuts.
 
 ## Current limitations
 
 - GTK4 is portable to Linux, macOS and Windows, but this repository's Nix flake and dependency wrappers currently target Linux only. Cross-platform app packaging is not yet provided.
-- The native GTK4 GUI continues processing input during model generation through Ain background tasks; the composer is still single-line.
+- The native GTK4 GUI continues processing input during model generation through Babel background tasks; the composer is still single-line.
 - Browser commands remain synchronous and can temporarily block the window.
 - Named agents persist their histories locally in `agents.json`; conversations without a named agent remain in memory unless saved explicitly.
 - Browser agents can run up to 20 bounded model-directed actions, but not purchases or unattended background runs.
@@ -196,7 +196,7 @@ MIT license.
 
 ## Responsive AI generation
 
-Ainex launches model requests using Babel's `spawn` builtin and a named Ain
+Ainex launches model requests using Babel's `spawn` builtin and a named Babel
 function returning `Data`. While the request executes, `guitick 50` pumps the
 native GTK4 event loop without destroying the input widget, and `guiupdate`
 repaints the result when it arrives. No Rust or Python application source is
@@ -206,7 +206,7 @@ the app thread with a bounded tool whitelist.
 
 ## UI engine and portability
 
-Ainex itself is written in Babel. UI container layout and scroll behavior belong to [Babel's native GUI renderer](https://github.com/honerop/ain/blob/main/docs/gui.md), not application-specific GTK code. The flake pins a specific Ain commit with the new layout runtime. GTK CSS offers native styling but is not a full browser CSS engine. Non-Nix builds on macOS/Windows require a working GTK4 toolchain and additional runtime packaging, as documented in Babel.
+Ainex itself is written in Babel. UI container layout and scroll behavior belong to [Babel's native GUI renderer](https://github.com/honerop/babel/blob/main/docs/gui.md), not application-specific GTK code. The flake pins a specific Babel commit with the new layout runtime. GTK CSS offers native styling but is not a full browser CSS engine. Non-Nix builds on macOS/Windows require a working GTK4 toolchain and additional runtime packaging, as documented in Babel.
 
 
 ## Babel compiler and segments
